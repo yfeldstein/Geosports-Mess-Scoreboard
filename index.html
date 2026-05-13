@@ -83,6 +83,7 @@ td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2;bac
   <div class="tabs">
     <button class="tab active" onclick="showTab('scoreboard')">Scoreboard</button>
     <button class="tab" onclick="showTab('recap')">Recap</button>
+    <button class="tab" onclick="showTab('highscores')">High Scores</button>
     <div id="admin-tab-wrap" style="display:none">
       <button class="tab" onclick="showTab('admin')">Admin</button>
     </div>
@@ -90,6 +91,7 @@ td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2;bac
 
   <div id="view-scoreboard"></div>
   <div id="view-recap" style="display:none"></div>
+  <div id="view-highscores" style="display:none"></div>
   <div id="view-admin" style="display:none"></div>
 </div>
 
@@ -136,13 +138,14 @@ function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : nul
 function showTab(name){
   activeTab = name;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  const idx = ["scoreboard","recap","admin"].indexOf(name);
+  const idx = ["scoreboard","recap","highscores","admin"].indexOf(name);
   document.querySelectorAll(".tab")[idx]?.classList.add("active");
-  ["scoreboard","recap","admin"].forEach(t=>{
+  ["scoreboard","recap","highscores","admin"].forEach(t=>{
     document.getElementById("view-"+t).style.display = t===name?"block":"none";
   });
   if(name==="scoreboard") renderScoreboard();
   if(name==="recap") renderRecap();
+  if(name==="highscores") renderHighScores();
   if(name==="admin") renderAdmin();
 }
 
@@ -287,6 +290,63 @@ function renderRecap(){
 
   html += `</div>`;
   document.getElementById("view-recap").innerHTML = html;
+}
+
+
+// ── HIGH SCORES ──
+function renderHighScores(){
+  const s = loadScores();
+  const all = allVals(s);
+  if(!all.length){
+    document.getElementById("view-highscores").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p></div>`;
+    return;
+  }
+
+  const entries = [];
+  getDates(s).forEach(d=>{
+    Object.entries(s[d]||{}).forEach(([name,score])=>{
+      const parts = d.split("/");
+      entries.push({score, name, date:`${parts[0]}/${parts[1]}`});
+    });
+  });
+  entries.sort((a,b)=>b.score-a.score);
+
+  const top = entries[0];
+  const totalDays = getDates(s).length;
+
+  let html = `<div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="flex:1;background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:10px;text-align:center">
+      <div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Top score</div>
+      <div style="font-size:22px;font-weight:600;color:#1a1a1a">${top.score}</div>
+      <div style="font-size:11px;color:#aaa">${top.name} &middot; ${top.date}</div>
+    </div>
+    <div style="flex:1;background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:10px;text-align:center">
+      <div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Entries</div>
+      <div style="font-size:22px;font-weight:600;color:#1a1a1a">${entries.length}</div>
+      <div style="font-size:11px;color:#aaa">across ${totalDays} day${totalDays!==1?"s":""}</div>
+    </div>
+  </div>
+  <div class="card" style="padding:14px">
+    <div style="max-width:320px;margin:0 auto">
+      <div style="display:grid;grid-template-columns:80px 120px 80px;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.04em;padding:0 0 8px;border-bottom:1.5px solid #f0f0f0;text-align:center">
+        <span>Score</span><span>Player</span><span>Date</span>
+      </div>`;
+
+  entries.forEach((e,i)=>{
+    const c = PC[e.name];
+    const isTop = e.score === top.score;
+    html += `<div style="display:grid;grid-template-columns:80px 120px 80px;align-items:center;padding:9px 0;border-bottom:0.5px solid #f5f5f5;text-align:center;background:${isTop?"#FFD70022":"transparent"}">
+      <span style="font-size:17px;font-weight:600;color:${isTop?"#B8860B":"#1a1a1a"}">${e.score}</span>
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${c.fg};flex-shrink:0"></span>
+        <span style="font-size:14px;font-weight:500;color:#1a1a1a">${e.name}</span>
+      </div>
+      <span style="font-size:13px;color:#aaa">${e.date}</span>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  document.getElementById("view-highscores").innerHTML = html;
 }
 
 // ── ADMIN ──
