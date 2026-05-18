@@ -8,6 +8,11 @@
 <meta property="og:description" content="Live daily scores, rankings and high scores for the Mess GeoSports group."/>
 <meta property="og:url" content="https://yfeldstein.github.io/Geosports-Mess-Scoreboard/"/>
 <meta property="og:type" content="website"/>
+<meta property="og:image" content="https://yfeldstein.github.io/Geosports-Mess-Scoreboard/og-image.svg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://yfeldstein.github.io/Geosports-Mess-Scoreboard/og-image.svg"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;transition:background-color .2s,color .2s,border-color .2s}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
@@ -129,20 +134,37 @@ td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2}
   </div>
 
   <div class="logo-wrap">
-    <svg class="logo-svg" viewBox="0 0 500 90" role="img">
+    <svg class="logo-svg" viewBox="0 0 680 300" role="img">
       <title>Mess GeoSports Scoreboard</title>
-      <rect x="0" y="0" width="500" height="90" rx="12" fill="#0A1628"/>
-      <rect x="0" y="0" width="11" height="90" rx="4" fill="#B22234"/>
-      <rect x="0" y="46" width="11" height="44" rx="0" fill="#B22234"/>
-      <rect x="489" y="0" width="11" height="90" rx="4" fill="#B22234"/>
-      <rect x="489" y="0" width="11" height="44" rx="0" fill="#B22234"/>
-      <rect x="18" y="16" width="48" height="58" rx="8" fill="#B22234"/>
-      <text x="42" y="36" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#fff" opacity="0.95">★ ★ ★</text>
-      <text x="42" y="50" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#fff" opacity="0.95">★ ★ ★</text>
-      <text x="42" y="64" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#fff" opacity="0.95">★ ★ ★</text>
-      <text x="80" y="40" font-family="-apple-system,sans-serif" font-size="12" font-weight="700" fill="#B22234" letter-spacing="0.18em">MESS</text>
-      <text x="80" y="70" font-family="-apple-system,sans-serif" font-size="30" font-weight="700" fill="#fff">Geo<tspan fill="#4A90D9">Sports</tspan></text>
-      <text x="80" y="84" font-family="-apple-system,sans-serif" font-size="10" font-weight="500" fill="#aaa" letter-spacing="0.14em">SCOREBOARD</text>
+      <defs>
+      </defs>
+      <rect x="40" y="10" width="600" height="280" rx="14" fill="#0A1628"/>
+      <!-- Top red star bar -->
+      <rect x="40" y="10" width="600" height="48" rx="14" fill="#B22234"/>
+      <rect x="40" y="32" width="600" height="26" rx="0" fill="#B22234"/>
+      <text x="340" y="44" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.8)" letter-spacing="18">★  ★  ★  ★  ★  ★  ★  ★  ★  ★</text>
+      <!-- Bottom red bar -->
+      <rect x="40" y="242" width="600" height="48" rx="14" fill="#B22234"/>
+      <rect x="40" y="242" width="600" height="26" rx="0" fill="#B22234"/>
+      
+      <!-- MAKE tight left of flag -->
+      <text x="295" y="272" text-anchor="end" font-family="-apple-system,sans-serif" font-size="16" font-weight="700" fill="#fff" letter-spacing="4">MAKE</text>
+
+      <!-- Globe -->
+      <circle cx="340" cy="266" r="22" fill="#1B5E9E"/>
+      <path d="M326,257 Q330,254 333,257 Q335,261 333,265 Q330,267 326,265 Q323,261 324,257Z" fill="#2E7D32" opacity="0.9"/>
+      <path d="M327,267 Q330,265 333,268 Q335,273 332,277 Q329,279 326,276 Q324,271 325,267Z" fill="#2E7D32" opacity="0.9"/>
+      <path d="M336,255 Q340,253 342,255 Q344,259 342,263 Q339,265 336,263 Q334,259 335,255Z" fill="#2E7D32" opacity="0.9"/>
+      <path d="M336,265 Q340,263 343,266 Q345,271 342,275 Q339,277 336,274 Q334,269 335,265Z" fill="#2E7D32" opacity="0.9"/>
+      <path d="M345,255 Q350,252 353,255 Q355,259 352,263 Q349,265 345,263 Q343,259 344,255Z" fill="#2E7D32" opacity="0.9"/>
+      <path d="M347,267 Q350,265 352,267 Q354,271 351,273 Q348,274 347,271Z" fill="#2E7D32" opacity="0.9"/>
+      <ellipse cx="340" cy="266" rx="22" ry="7" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>
+      <ellipse cx="340" cy="266" rx="7" ry="22" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>
+      <circle cx="340" cy="266" r="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+      <!-- Main content -->
+      <text x="340" y="152" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="100" font-weight="900" fill="#fff">MESS</text>
+      <text x="340" y="200" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="40" font-weight="900" fill="#4A90D9">GeoSports</text>
+      <text x="340" y="232" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="20" font-weight="700" fill="#ccc" letter-spacing="8">SCOREBOARD</text>
     </svg>
     <button class="admin-btn" id="admin-btn" onclick="toggleAdmin()">🔒 Admin</button>
   </div>
