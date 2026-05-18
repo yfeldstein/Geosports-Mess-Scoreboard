@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/><title>Seed GeoSports Data</title></head>
+<body>
+<div style="font-family:sans-serif;max-width:400px;margin:3rem auto;text-align:center;padding:2rem">
+  <h2>GeoSports Data Seeder</h2>
+  <p style="color:#888;margin:1rem 0">Click the button to load all historical scores into Firebase.</p>
+  <button id="btn" onclick="seedData()" style="background:#0A1628;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:16px;cursor:pointer">Seed All Scores</button>
+  <div id="status" style="margin-top:1.5rem;font-size:14px"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyDvzUc07MAv3RQv-QQMrj17ZS2bmd6qsRM",
+  authDomain: "geosports-scoreboard.firebaseapp.com",
+  databaseURL: "https://geosports-scoreboard-default-rtdb.firebaseio.com",
+  projectId: "geosports-scoreboard",
+  storageBucket: "geosports-scoreboard.firebasestorage.app",
+  messagingSenderId: "908275741528",
+  appId: "1:908275741528:web:8c03c411b17134793c6b2d"
+});
+
+const SEED = {
+  "5/6/2026":  {"Donny":959,"Jason":822,"Yoni":904,"Yosef":807},
+  "5/7/2026":  {"Dave":815,"Donny":894,"Jason":793,"Yoni":869,"Yosef":921},
+  "5/8/2026":  {"Adam":738,"Donny":871,"Yoni":752,"Yosef":656,"Zach":810},
+  "5/9/2026":  {"Adam":819,"Dave":858,"Donny":900,"Jason":619,"Ronnie":806,"Yoni":698,"Yosef":759,"Zach":860},
+  "5/10/2026": {"Donny":824,"Yoni":769,"Yosef":771,"Zach":847}
+};
+
+async function seedData(){
+  const btn = document.getElementById("btn");
+  const status = document.getElementById("status");
+  btn.disabled = true;
+  btn.textContent = "Seeding...";
+  status.innerHTML = "";
+  try {
+    await firebase.database().ref("scores").set(SEED);
+    status.innerHTML = `<span style="color:#27ae60;font-weight:600">✅ Done! All scores loaded into Firebase.<br/>You can close this page.</span>`;
+    btn.textContent = "Done!";
+  } catch(e) {
+    status.innerHTML = `<span style="color:#c0392b">Error: ${e.message}</span>`;
+    btn.disabled = false;
+    btn.textContent = "Try Again";
+  }
+}
+</script>
+</body>
+</html>
