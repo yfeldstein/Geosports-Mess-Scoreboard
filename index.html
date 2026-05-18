@@ -138,7 +138,7 @@ const PC = {
   Zach:  {bg:"#F4F4B8",fg:"#5C5C1A"},
 };
 const ADMIN_PASS = "geosports2026";
-const SEED = {"5/6/2026":{"Donny":959,"Jason":822,"Yoni":904,"Yosef":807},"5/7/2026":{"Dave":815,"Donny":894,"Jason":793,"Yoni":869,"Yosef":921},"5/8/2026":{"Adam":738,"Donny":871,"Yoni":752,"Yosef":656,"Zach":810},"5/9/2026":{"Adam":819,"Dave":858,"Donny":900,"Jason":619,"Ronnie":806,"Yoni":698,"Yosef":759,"Zach":860},"5/10/2026":{"Donny":824,"Yoni":769,"Yosef":771,"Zach":847}};
+const SEED = {"5-6-2026":{"Donny":959,"Jason":822,"Yoni":904,"Yosef":807},"5-7-2026":{"Dave":815,"Donny":894,"Jason":793,"Yoni":869,"Yosef":921},"5-8-2026":{"Adam":738,"Donny":871,"Yoni":752,"Yosef":656,"Zach":810},"5-9-2026":{"Adam":819,"Dave":858,"Donny":900,"Jason":619,"Ronnie":806,"Yoni":698,"Yosef":759,"Zach":860},"5-10-2026":{"Donny":824,"Yoni":769,"Yosef":771,"Zach":847},"5-13-2026":{"Adam":938,"Dave":848,"Donny":944,"Jason":941,"Ronnie":842,"Yoni":825,"Yosef":734,"Zach":884},"5-14-2026":{"Adam":930,"Dave":780,"Donny":909,"Jason":860,"Ronnie":716,"Yoni":840,"Yosef":835,"Zach":890},"5-15-2026":{"Adam":917,"Dave":411,"Donny":890,"Ronnie":580,"Yoni":728,"Yosef":596,"Zach":846},"5-16-2026":{"Adam":760,"Donny":813,"Ronnie":642,"Yoni":631,"Yosef":627}};
 
 let adminUnlocked = false;
 let activeTab = "scoreboard";
@@ -210,7 +210,7 @@ function renderScoreboard(){
   } else {
     html += `<div class="table-scroll"><table><thead><tr><th class="name-col">Player</th>`;
     dates.forEach(d=>{
-      const parts=d.split("/");
+      const parts=d.split("-");
       html += `<th>${parts[0]}/${parts[1]}</th>`;
     });
     html += `</tr></thead><tbody>`;
@@ -312,7 +312,7 @@ function renderHighScores(){
   const entries=[];
   Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).forEach(d=>{
     Object.entries(s[d]||{}).forEach(([name,score])=>{
-      const parts=d.split("/");
+      const parts=d.split("-");
       entries.push({score,name,date:`${parts[0]}/${parts[1]}`});
     });
   });
@@ -398,7 +398,7 @@ function prefillDate(){
   const raw=document.getElementById("score-date").value;
   if(!raw)return;
   const [y,m,d]=raw.split("-");
-  const key=`${parseInt(m)}/${parseInt(d)}/${y}`;
+  const key=`${parseInt(m)}-${parseInt(d)}-${y}`;
   PLAYERS.forEach(name=>{
     const inp=document.getElementById("inp-"+name);
     if(inp) inp.value=s[key]?.[name]??"";
@@ -409,7 +409,7 @@ function getDateKey(){
   const raw=document.getElementById("score-date").value;
   if(!raw)return null;
   const [y,m,d]=raw.split("-");
-  return `${parseInt(m)}/${parseInt(d)}/${y}`;
+  return `${parseInt(m)}-${parseInt(d)}-${y}`;
 }
 
 function saveDay(){
