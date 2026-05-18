@@ -9,71 +9,125 @@
 <meta property="og:url" content="https://yfeldstein.github.io/Geosports-Mess-Scoreboard/"/>
 <meta property="og:type" content="website"/>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh;color:#1a1a1a}
+*{box-sizing:border-box;margin:0;padding:0;transition:background-color .2s,color .2s,border-color .2s}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+
+/* LIGHT MODE */
+body.light{background:#f0f2f5;color:#1a1a1a}
+body.light .card{background:#fff;border-color:#e8e8e8}
+body.light .tabs{background:#fff;border-color:#e0e0e0}
+body.light .tab{color:#666}
+body.light .tab.active{background:#0A1628;color:#fff}
+body.light th{background:#fff;color:#888;border-color:#f0f0f0}
+body.light th.name-col{background:#fff;box-shadow:2px 0 4px rgba(0,0,0,0.06)}
+body.light td{background:#fff;border-color:#f5f5f5;color:#1a1a1a}
+body.light td.name-col{background:#fff;box-shadow:2px 0 4px rgba(0,0,0,0.06)}
+body.light .winner-row td{background:#fffbea!important}
+body.light .winner-row td.name-col{background:#fffbea!important}
+body.light .stat{background:#fff;border-color:#e8e8e8}
+body.light .stat-label{color:#888}
+body.light .lock input{border-color:#ddd;background:#fff;color:#1a1a1a}
+body.light .entry-row input{border-color:#ddd;background:#fff;color:#1a1a1a}
+body.light .date-selector input{border-color:#ddd;background:#fff;color:#1a1a1a}
+body.light .btn{background:#fff;color:#333;border-color:#ddd}
+body.light .btn:hover{background:#f5f5f5}
+body.light .date-list-item{border-color:#f0f0f0}
+body.light .recap-card{background:#fff;border-color:#e8e8e8}
+body.light .hs-card{background:#fff;border-color:#e8e8e8}
+body.light .hs-row{border-color:#f5f5f5}
+body.light .dark-toggle{background:#fff;border-color:#ddd;color:#555}
+
+/* DARK MODE */
+body.dark{background:#0f0f0f;color:#e8e8e8}
+body.dark .card{background:#1a1a1a;border-color:#2a2a2a}
+body.dark .tabs{background:#1a1a1a;border-color:#2a2a2a}
+body.dark .tab{color:#888}
+body.dark .tab.active{background:#4A90D9;color:#fff}
+body.dark th{background:#1a1a1a;color:#666;border-color:#2a2a2a}
+body.dark th.name-col{background:#1a1a1a;box-shadow:2px 0 6px rgba(0,0,0,0.4)}
+body.dark td{background:#1a1a1a;border-color:#252525;color:#e8e8e8}
+body.dark td.name-col{background:#1a1a1a;box-shadow:2px 0 6px rgba(0,0,0,0.4)}
+body.dark .winner-row td{background:#1f1c0a!important}
+body.dark .winner-row td.name-col{background:#1f1c0a!important}
+body.dark .stat{background:#1a1a1a;border-color:#2a2a2a}
+body.dark .stat-label{color:#666}
+body.dark .lock input{border-color:#333;background:#222;color:#e8e8e8}
+body.dark .entry-row input{border-color:#333;background:#222;color:#e8e8e8}
+body.dark .date-selector input{border-color:#333;background:#222;color:#e8e8e8}
+body.dark .btn{background:#222;color:#ccc;border-color:#333}
+body.dark .btn:hover{background:#2a2a2a}
+body.dark .date-list-item{border-color:#2a2a2a}
+body.dark .recap-card{background:#1a1a1a;border-color:#2a2a2a}
+body.dark .hs-card{background:#1a1a1a;border-color:#2a2a2a}
+body.dark .hs-row{border-color:#252525}
+body.dark .chip-plain{color:#e8e8e8}
+body.dark .dark-toggle{background:#222;border-color:#333;color:#ccc}
+
 .app{max-width:1100px;margin:0 auto;padding:1rem}
-.logo-wrap{margin-bottom:1.25rem}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.dark-toggle{border:1.5px solid;border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
 .logo-svg{width:100%;max-width:500px;display:block;margin:0 auto}
 .admin-btn{display:block;margin:8px auto 0;background:none;border:1.5px solid #444;border-radius:8px;padding:5px 14px;font-size:12px;cursor:pointer;color:#aaa}
 .admin-btn:hover{border-color:#4A90D9;color:#4A90D9}
-.tabs{display:flex;gap:0;background:#fff;border-radius:10px;border:1px solid #e0e0e0;padding:4px;margin-bottom:1.25rem;width:100%;overflow-x:auto}
-.tab{padding:7px 16px;border-radius:7px;border:none;background:none;font-size:13px;cursor:pointer;color:#666;font-weight:500;white-space:nowrap;flex:1}
-.tab.active{background:#0A1628;color:#fff}
-.card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:1.25rem;margin-bottom:1rem}
+.logo-wrap{margin-bottom:1.25rem}
+.tabs{display:flex;gap:0;border-radius:10px;border:1px solid;padding:4px;margin-bottom:1.25rem;width:100%;overflow-x:auto}
+.tab{padding:7px 16px;border-radius:7px;border:none;background:none;font-size:13px;cursor:pointer;font-weight:500;white-space:nowrap;flex:1}
+.card{border-radius:12px;border:1px solid;padding:1.25rem;margin-bottom:1rem}
 .card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:12px}
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{border-collapse:collapse;font-size:13px;min-width:500px;width:100%}
-th{padding:8px 10px;text-align:center;font-weight:600;font-size:12px;color:#888;border-bottom:1.5px solid #f0f0f0;white-space:nowrap;background:#fff}
-th.name-col{text-align:left;position:sticky;left:0;z-index:3;background:#fff;box-shadow:2px 0 4px rgba(0,0,0,0.06)}
-td{padding:7px 10px;text-align:center;border-bottom:1px solid #f5f5f5;background:#fff}
+th{padding:8px 10px;text-align:center;font-weight:600;font-size:12px;border-bottom:1.5px solid;white-space:nowrap}
+th.name-col{text-align:left;position:sticky;left:0;z-index:3}
+td{padding:7px 10px;text-align:center;border-bottom:1px solid}
 tr:last-child td{border-bottom:none}
-td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2;background:#fff;box-shadow:2px 0 4px rgba(0,0,0,0.06)}
-.winner-row td{background:#fffbea!important}
-.winner-row td.name-col{background:#fffbea!important;font-size:12px;font-weight:600;box-shadow:2px 0 4px rgba(0,0,0,0.06)}
+td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2}
+.winner-row td{font-size:12px;font-weight:600}
 .score-chip{display:inline-block;padding:2px 8px;border-radius:5px;font-weight:700;min-width:42px}
 .chip-gold{background:#FFD700;color:#000}
 .chip-brown{background:#8B4513;color:#fff}
 .chip-green{background:#00CC44;color:#fff}
 .chip-orange{background:#FF6600;color:#fff}
-.chip-plain{background:transparent;color:#1a1a1a}
 .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
-.stat{background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:12px;text-align:center}
-.stat-label{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.stat{border-radius:10px;border:1px solid;padding:12px;text-align:center}
 .stat-value{font-size:26px;font-weight:600}
 .lock{text-align:center;padding:3rem 1rem}
 .lock p{color:#888;font-size:14px;margin-bottom:1rem}
-.lock input{width:100%;max-width:260px;padding:10px 14px;border-radius:8px;border:1.5px solid #ddd;font-size:15px;text-align:center;outline:none;margin-bottom:8px;display:block;margin:0 auto 8px}
-.lock input:focus{border-color:#4472C4}
+.lock input{width:100%;max-width:260px;padding:10px 14px;border-radius:8px;border:1.5px solid;font-size:15px;text-align:center;outline:none;margin:0 auto 8px;display:block}
 .err{color:#c0392b;font-size:13px;margin-top:6px}
-.btn{padding:9px 22px;border-radius:8px;border:1.5px solid #ddd;font-size:14px;cursor:pointer;background:#fff;color:#333;font-weight:500}
-.btn:hover{background:#f5f5f5}
-.btn-primary{background:#0A1628;color:#fff;border-color:#0A1628}
-.btn-primary:hover{background:#1a2d4a}
-.btn-danger{background:#fff0f0;color:#c0392b;border-color:#f5c6c6}
+.btn{padding:9px 22px;border-radius:8px;border:1.5px solid;font-size:14px;cursor:pointer;font-weight:500}
+.btn-primary{background:#0A1628!important;color:#fff!important;border-color:#0A1628!important}
+.btn-primary:hover{background:#1a2d4a!important}
+.btn-danger{background:#fff0f0!important;color:#c0392b!important;border-color:#f5c6c6!important}
 .entry-form{display:grid;gap:8px}
 .entry-row{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:10px}
 .entry-row label{font-size:14px;font-weight:600}
-.entry-row input{padding:8px 10px;border-radius:7px;border:1.5px solid #ddd;font-size:14px;outline:none;width:100%}
-.entry-row input:focus{border-color:#4472C4}
+.entry-row input{padding:8px 10px;border-radius:7px;border:1.5px solid;font-size:14px;outline:none;width:100%}
 .date-selector{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.date-selector label{font-size:14px;font-weight:600;color:#444}
-.date-selector input{padding:8px 12px;border-radius:7px;border:1.5px solid #ddd;font-size:14px;outline:none}
+.date-selector label{font-size:14px;font-weight:600}
+.date-selector input{padding:8px 12px;border-radius:7px;border:1.5px solid;font-size:14px;outline:none}
 .form-actions{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
 .msg{font-size:13px;padding:4px 0}
 .msg.success{color:#27ae60}
 .msg.error{color:#c0392b}
-.date-list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.date-list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid;font-size:13px}
 .date-list-item:last-child{border-bottom:none}
-.rank-badge{display:inline-block;background:#f0f0f0;color:#555;border-radius:5px;padding:2px 7px;font-size:12px;font-weight:700}
 .loading{text-align:center;padding:3rem;color:#aaa;font-size:14px}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#27ae60;margin-right:5px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.recap-card{border-radius:12px;border:1px solid;padding:12px}
+.hs-card{border-radius:12px;border:1px solid;padding:14px}
+.hs-row{border-bottom:0.5px solid;padding:9px 0}
+.hs-row:last-child{border-bottom:none}
 </style>
 </head>
-<body>
+<body class="light">
 <div class="app">
 
-  <!-- LOGO -->
+  <div class="top-bar">
+    <div></div>
+    <button class="dark-toggle" onclick="toggleDark()" id="dark-btn">🌙 Dark</button>
+  </div>
+
   <div class="logo-wrap">
     <svg class="logo-svg" viewBox="0 0 500 90" role="img">
       <title>Mess GeoSports Scoreboard</title>
@@ -111,18 +165,15 @@ td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2;bac
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.min.js"></script>
 <script>
-const FIREBASE_CONFIG = {
+firebase.initializeApp({
   apiKey: "AIzaSyDvzUc07MAv3RQv-QQMrj17ZS2bmd6qsRM",
   authDomain: "geosports-scoreboard.firebaseapp.com",
   databaseURL: "https://geosports-scoreboard-default-rtdb.firebaseio.com",
   projectId: "geosports-scoreboard",
   storageBucket: "geosports-scoreboard.firebasestorage.app",
   messagingSenderId: "908275741528",
-  appId: "1:908275741528:web:8c03c411b17134793c6b2d",
-  measurementId: "G-0XKVJPR0ZB"
-};
-
-firebase.initializeApp(FIREBASE_CONFIG);
+  appId: "1:908275741528:web:8c03c411b17134793c6b2d"
+});
 const db = firebase.database();
 const scoresRef = db.ref("scores");
 
@@ -138,43 +189,44 @@ const PC = {
   Zach:  {bg:"#F4F4B8",fg:"#5C5C1A"},
 };
 const ADMIN_PASS = "geosports2026";
-const SEED = {"5-6-2026":{"Donny":959,"Jason":822,"Yoni":904,"Yosef":807},"5-7-2026":{"Dave":815,"Donny":894,"Jason":793,"Yoni":869,"Yosef":921},"5-8-2026":{"Adam":738,"Donny":871,"Yoni":752,"Yosef":656,"Zach":810},"5-9-2026":{"Adam":819,"Dave":858,"Donny":900,"Jason":619,"Ronnie":806,"Yoni":698,"Yosef":759,"Zach":860},"5-10-2026":{"Donny":824,"Yoni":769,"Yosef":771,"Zach":847},"5-13-2026":{"Adam":938,"Dave":848,"Donny":944,"Jason":941,"Ronnie":842,"Yoni":825,"Yosef":734,"Zach":884},"5-14-2026":{"Adam":930,"Dave":780,"Donny":909,"Jason":860,"Ronnie":716,"Yoni":840,"Yosef":835,"Zach":890},"5-15-2026":{"Adam":917,"Dave":411,"Donny":890,"Ronnie":580,"Yoni":728,"Yosef":596,"Zach":846},"5-16-2026":{"Adam":760,"Donny":813,"Ronnie":642,"Yoni":631,"Yosef":627}};
-
 let adminUnlocked = false;
 let activeTab = "scoreboard";
 let liveScores = null;
 
-// Listen for live updates from Firebase
+// Dark mode
+let isDark = localStorage.getItem("darkMode") === "true";
+function applyTheme(){
+  document.body.className = isDark ? "dark" : "light";
+  document.getElementById("dark-btn").textContent = isDark ? "☀️ Light" : "🌙 Dark";
+}
+function toggleDark(){
+  isDark = !isDark;
+  localStorage.setItem("darkMode", isDark);
+  applyTheme();
+}
+applyTheme();
+
 scoresRef.on("value", snap => {
-  const data = snap.val();
-  if(data){
-    liveScores = data;
-  } else {
-    // First time — seed the data
-    scoresRef.set(SEED);
-    liveScores = SEED;
-  }
-  if(activeTab === "scoreboard") renderScoreboard();
-  if(activeTab === "recap") renderRecap();
-  if(activeTab === "highscores") renderHighScores();
-  if(activeTab === "admin" && adminUnlocked) renderDateList();
+  liveScores = snap.val() || {};
+  if(activeTab==="scoreboard") renderScoreboard();
+  if(activeTab==="recap") renderRecap();
+  if(activeTab==="highscores") renderHighScores();
+  if(activeTab==="admin" && adminUnlocked) renderDateList();
 });
 
 function getScores(){ return liveScores || {}; }
 function getDates(s){ return Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).reverse(); }
 function allVals(s){ return Object.values(s).flatMap(d=>Object.values(d)).filter(v=>v!=null); }
 function playerScores(s,name){ return Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).map(d=>s[d]?.[name]).filter(v=>v!=null); }
-function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+function avg(arr){ return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null; }
 
 function showTab(name){
-  activeTab = name;
+  activeTab=name;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  const allTabs = ["scoreboard","recap","highscores","admin"];
-  const idx = allTabs.indexOf(name);
-  document.querySelectorAll(".tab")[idx]?.classList.add("active");
-  allTabs.forEach(t=>{
-    const el = document.getElementById("view-"+t);
-    if(el) el.style.display = t===name?"block":"none";
+  ["scoreboard","recap","highscores","admin"].forEach((t,i)=>{
+    const el=document.getElementById("view-"+t);
+    if(el) el.style.display=t===name?"block":"none";
+    if(t===name) document.querySelectorAll(".tab")[i]?.classList.add("active");
   });
   if(name==="scoreboard") renderScoreboard();
   if(name==="recap") renderRecap();
@@ -183,51 +235,51 @@ function showTab(name){
 }
 
 function toggleAdmin(){
-  document.getElementById("admin-tab-wrap").style.display = "block";
+  document.getElementById("admin-tab-wrap").style.display="block";
   showTab("admin");
 }
 
+function cardBg(){ return isDark?"#1a1a1a":"#fff"; }
+function cardBorder(){ return isDark?"#2a2a2a":"#e8e8e8"; }
+function textColor(){ return isDark?"#e8e8e8":"#1a1a1a"; }
+function subColor(){ return isDark?"#666":"#888"; }
+
 // ── SCOREBOARD ──
 function renderScoreboard(){
-  const s = getScores();
-  const dates = getDates(s);
-  const all = allVals(s);
-  const ATH = all.length ? Math.max(...all) : null;
-  const ATL = all.length ? Math.min(...all) : null;
-
-  let html = "";
+  const s=getScores();
+  const dates=getDates(s);
+  const all=allVals(s);
+  const ATH=all.length?Math.max(...all):null;
+  const ATL=all.length?Math.min(...all):null;
+  let html="";
   if(all.length){
-    html += `<div class="stat-row">
+    html+=`<div class="stat-row">
       <div class="stat"><div class="stat-label">All-time high</div><div class="stat-value" style="color:#B8860B">${ATH}</div></div>
       <div class="stat"><div class="stat-label">All-time low</div><div class="stat-value" style="color:#8B4513">${ATL}</div></div>
       <div class="stat"><div class="stat-label">Days played</div><div class="stat-value">${dates.length}</div></div>
     </div>`;
   }
-
-  html += `<div class="card"><div style="font-size:11px;color:#27ae60;margin-bottom:8px"><span class="live-dot"></span>Live — updates automatically</div>`;
+  html+=`<div class="card"><div style="font-size:11px;color:#27ae60;margin-bottom:8px"><span class="live-dot"></span>Live — updates automatically</div>`;
   if(!dates.length){
-    html += `<p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p>`;
+    html+=`<p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p>`;
   } else {
-    html += `<div class="table-scroll"><table><thead><tr><th class="name-col">Player</th>`;
-    dates.forEach(d=>{
-      const parts=d.split("-");
-      html += `<th>${parts[0]}/${parts[1]}</th>`;
-    });
-    html += `</tr></thead><tbody>`;
+    html+=`<div class="table-scroll"><table><thead><tr><th class="name-col">Player</th>`;
+    dates.forEach(d=>{const p=d.split("-");html+=`<th>${p[0]}/${p[1]}</th>`;});
+    html+=`</tr></thead><tbody>`;
     PLAYERS.forEach(name=>{
-      const ps = playerScores(s,name);
-      const pb = ps.length?Math.max(...ps):null;
-      const pl = ps.length?Math.min(...ps):null;
-      const c = PC[name];
-      html += `<tr><td class="name-col" style="color:${c.fg}">${name}</td>`;
+      const ps=playerScores(s,name);
+      const pb=ps.length?Math.max(...ps):null;
+      const pl=ps.length?Math.min(...ps):null;
+      const c=PC[name];
+      html+=`<tr><td class="name-col" style="color:${c.fg}">${name}</td>`;
       dates.forEach(d=>{
         const v=s[d]?.[name];
-        if(v==null){html+=`<td style="color:#ccc">—</td>`;return;}
+        if(v==null){html+=`<td style="color:#555">—</td>`;return;}
         let cls="score-chip ";
-        if(v===ATH) cls+="chip-gold";
-        else if(v===ATL) cls+="chip-brown";
-        else if(v===pb) cls+="chip-green";
-        else if(v===pl) cls+="chip-orange";
+        if(v===ATH)cls+="chip-gold";
+        else if(v===ATL)cls+="chip-brown";
+        else if(v===pb)cls+="chip-green";
+        else if(v===pl)cls+="chip-orange";
         else cls+="chip-plain";
         html+=`<td><span class="${cls}">${v}</span></td>`;
       });
@@ -238,14 +290,14 @@ function renderScoreboard(){
       const day=s[d]||{};let best=-1,winner="—";
       Object.entries(day).forEach(([n,v])=>{if(v>best){best=v;winner=n;}});
       const c=winner!=="—"?PC[winner]:null;
-      html+=`<td style="${c?`color:${c.fg}`:"color:#bbb"}">${winner}</td>`;
+      html+=`<td style="${c?`color:${c.fg}`:"color:#555"}">${winner}</td>`;
     });
     html+=`</tr></tbody></table></div>`;
-    html+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0">
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#666"><div style="width:12px;height:12px;border-radius:3px;background:#FFD700"></div>All-time high</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#666"><div style="width:12px;height:12px;border-radius:3px;background:#8B4513"></div>All-time low</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#666"><div style="width:12px;height:12px;border-radius:3px;background:#00CC44"></div>Personal best</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#666"><div style="width:12px;height:12px;border-radius:3px;background:#FF6600"></div>Personal low</div>
+    html+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid ${cardBorder()}">
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px"><div style="width:12px;height:12px;border-radius:3px;background:#FFD700"></div>All-time high</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px"><div style="width:12px;height:12px;border-radius:3px;background:#8B4513"></div>All-time low</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px"><div style="width:12px;height:12px;border-radius:3px;background:#00CC44"></div>Personal best</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px"><div style="width:12px;height:12px;border-radius:3px;background:#FF6600"></div>Personal low</div>
     </div>`;
   }
   html+=`</div>`;
@@ -254,21 +306,14 @@ function renderScoreboard(){
 
 // ── RECAP ──
 function renderRecap(){
-  const s = getScores();
-  const all = allVals(s);
-  if(!all.length){
-    document.getElementById("view-recap").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No data yet.</p></div>`;
-    return;
-  }
+  const s=getScores();
+  const all=allVals(s);
+  if(!all.length){document.getElementById("view-recap").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No data yet.</p></div>`;return;}
   const maxBest=Math.max(...PLAYERS.map(n=>{const ps=playerScores(s,n);return ps.length?Math.max(...ps):-Infinity;}));
   const minLow=Math.min(...PLAYERS.map(n=>{const ps=playerScores(s,n);return ps.length?Math.min(...ps):Infinity;}));
   const stats=PLAYERS.map(name=>{
     const ps=playerScores(s,name);
-    const wins=Object.keys(s).filter(d=>{
-      const day=s[d]||{};let best=-1,w=null;
-      Object.entries(day).forEach(([n,v])=>{if(v>best){best=v;w=n;}});
-      return w===name;
-    }).length;
+    const wins=Object.keys(s).filter(d=>{const day=s[d]||{};let best=-1,w=null;Object.entries(day).forEach(([n,v])=>{if(v>best){best=v;w=n;}});return w===name;}).length;
     return{name,avg:avg(ps),best:ps.length?Math.max(...ps):null,low:ps.length?Math.min(...ps):null,wins,count:ps.length};
   }).filter(p=>p.avg!=null).sort((a,b)=>b.avg-a.avg);
   const maxWins=Math.max(...stats.map(p=>p.wins));
@@ -279,9 +324,9 @@ function renderRecap(){
     const lowCls=p.low===minLow?"chip-brown":"";
     const winColor=p.wins===maxWins&&p.wins>0?"#B8860B":"#aaa";
     const winWeight=p.wins===maxWins&&p.wins>0?"700":"400";
-    const rankBg=i===0?"#FFD700":i===1?"#C0C0C0":i===2?"#CD7F32":"#f0f0f0";
-    const rankFg=i<3?"#000":"#555";
-    html+=`<div style="background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:12px;position:relative">
+    const rankBg=i===0?"#FFD700":i===1?"#C0C0C0":i===2?"#CD7F32":"#333";
+    const rankFg=i<3?"#000":"#aaa";
+    html+=`<div class="recap-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <span style="font-weight:700;font-size:15px;color:${c.fg}">${p.name}</span>
         <span style="background:${rankBg};color:${rankFg};padding:2px 8px;border-radius:6px;font-weight:700;font-size:12px">#${i+1}</span>
@@ -305,45 +350,41 @@ function renderRecap(){
 function renderHighScores(){
   const s=getScores();
   const all=allVals(s);
-  if(!all.length){
-    document.getElementById("view-highscores").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p></div>`;
-    return;
-  }
+  if(!all.length){document.getElementById("view-highscores").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p></div>`;return;}
   const entries=[];
   Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).forEach(d=>{
     Object.entries(s[d]||{}).forEach(([name,score])=>{
-      const parts=d.split("-");
-      entries.push({score,name,date:`${parts[0]}/${parts[1]}`});
+      const p=d.split("-");entries.push({score,name,date:`${p[0]}/${p[1]}`});
     });
   });
   entries.sort((a,b)=>b.score-a.score);
   const top=entries[0];
   const totalDays=Object.keys(s).length;
   let html=`<div style="display:flex;gap:8px;margin-bottom:14px">
-    <div style="flex:1;background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:10px;text-align:center">
+    <div class="hs-card" style="flex:1;text-align:center">
       <div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Top score</div>
-      <div style="font-size:22px;font-weight:600;color:#1a1a1a">${top.score}</div>
+      <div style="font-size:22px;font-weight:600">${top.score}</div>
       <div style="font-size:11px;color:#aaa">${top.name} &middot; ${top.date}</div>
     </div>
-    <div style="flex:1;background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:10px;text-align:center">
+    <div class="hs-card" style="flex:1;text-align:center">
       <div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Entries</div>
-      <div style="font-size:22px;font-weight:600;color:#1a1a1a">${entries.length}</div>
+      <div style="font-size:22px;font-weight:600">${entries.length}</div>
       <div style="font-size:11px;color:#aaa">across ${totalDays} day${totalDays!==1?"s":""}</div>
     </div>
   </div>
-  <div class="card" style="padding:14px">
+  <div class="hs-card">
     <div style="max-width:320px;margin:0 auto">
-      <div style="display:grid;grid-template-columns:80px 120px 80px;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.04em;padding:0 0 8px;border-bottom:1.5px solid #f0f0f0;text-align:center">
+      <div style="display:grid;grid-template-columns:80px 120px 80px;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.04em;padding:0 0 8px;border-bottom:1.5px solid ${cardBorder()};text-align:center">
         <span>Score</span><span>Player</span><span>Date</span>
       </div>`;
   entries.forEach((e,i)=>{
     const c=PC[e.name];
-    const isTop=e.score===top.score&&i===0;
-    html+=`<div style="display:grid;grid-template-columns:80px 120px 80px;align-items:center;padding:9px 0;border-bottom:0.5px solid #f5f5f5;text-align:center;background:${isTop?"#FFD70022":"transparent"}">
-      <span style="font-size:17px;font-weight:600;color:${isTop?"#B8860B":"#1a1a1a"}">${e.score}</span>
+    const isTop=i===0;
+    html+=`<div class="hs-row" style="display:grid;grid-template-columns:80px 120px 80px;align-items:center;text-align:center;background:${isTop?"rgba(255,215,0,0.1)":"transparent"}">
+      <span style="font-size:17px;font-weight:600;color:${isTop?"#B8860B":textColor()}">${e.score}</span>
       <div style="display:flex;align-items:center;justify-content:center;gap:6px">
         <span style="width:8px;height:8px;border-radius:50%;background:${c.fg};flex-shrink:0"></span>
-        <span style="font-size:14px;font-weight:500;color:#1a1a1a">${e.name}</span>
+        <span style="font-size:14px;font-weight:500">${e.name}</span>
       </div>
       <span style="font-size:13px;color:#aaa">${e.date}</span>
     </div>`;
@@ -366,7 +407,6 @@ function renderAdmin(){
       </div>`;
     return;
   }
-  const s=getScores();
   let html=`<div class="card">
     <div class="card-title"><span class="live-dot"></span>Enter scores</div>
     <div class="date-selector">
@@ -387,8 +427,7 @@ function renderAdmin(){
   </div>
   <div class="card"><div class="card-title">All dates</div><div id="date-list"></div></div>`;
   document.getElementById("view-admin").innerHTML=html;
-  const now=new Date();
-  document.getElementById("score-date").value=now.toISOString().split("T")[0];
+  document.getElementById("score-date").value=new Date().toISOString().split("T")[0];
   prefillDate();
   renderDateList();
 }
@@ -415,17 +454,13 @@ function getDateKey(){
 function saveDay(){
   const key=getDateKey();
   if(!key){showMsg("Pick a date.","error");return;}
-  const update={};
-  let count=0;
+  const update={};let count=0;
   PLAYERS.forEach(name=>{
     const v=document.getElementById("inp-"+name)?.value;
     if(v!==""){update[name]=parseInt(v);count++;}
   });
-  if(count===0){
-    scoresRef.child(key).remove();
-  } else {
-    scoresRef.child(key).set(update);
-  }
+  if(count===0){scoresRef.child(key).remove();}
+  else{scoresRef.child(key).set(update);}
   showMsg(`Saved ${count} score${count!==1?"s":""}.`,"success");
 }
 
@@ -445,8 +480,9 @@ function renderDateList(){
   if(!dates.length){el.innerHTML=`<p style="color:#aaa;font-size:13px">No dates yet.</p>`;return;}
   el.innerHTML=dates.map(d=>{
     const count=Object.keys(s[d]||{}).length;
+    const p=d.split("-");
     return `<div class="date-list-item">
-      <span><strong>${d}</strong> <span style="color:#aaa">(${count} score${count!==1?"s":""})</span></span>
+      <span><strong>${p[0]}/${p[1]}/${p[2]}</strong> <span style="color:#aaa">(${count} score${count!==1?"s":""})</span></span>
       <button class="btn btn-danger" style="padding:4px 12px;font-size:12px" onclick="deleteDate('${d}')">Delete</button>
     </div>`;
   }).join("");
@@ -466,13 +502,8 @@ function showMsg(text,type){
 
 function checkPw(){
   const v=document.getElementById("pw").value;
-  if(v===ADMIN_PASS){
-    adminUnlocked=true;
-    document.getElementById("admin-btn").textContent="🔓 Admin";
-    renderAdmin();
-  } else {
-    document.getElementById("pw-err").textContent="Incorrect password.";
-  }
+  if(v===ADMIN_PASS){adminUnlocked=true;document.getElementById("admin-btn").textContent="🔓 Admin";renderAdmin();}
+  else document.getElementById("pw-err").textContent="Incorrect password.";
 }
 </script>
 </body>
