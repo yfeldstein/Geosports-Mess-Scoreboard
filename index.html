@@ -251,11 +251,12 @@ function avg(arr){ return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null; }
 function showTab(name){
   activeTab=name;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  ["scoreboard","recap","highscores","admin"].forEach((t,i)=>{
+  ["scoreboard","recap","highscores","charts","dailyavg","admin"].forEach(t=>{
     const el=document.getElementById("view-"+t);
     if(el) el.style.display=t===name?"block":"none";
-    if(t===name) document.querySelectorAll(".tab")[i]?.classList.add("active");
   });
+  const btn=document.querySelector(`[onclick="showTab('${name}')"]`);
+  if(btn) btn.classList.add("active");
   if(name==="scoreboard") renderScoreboard();
   if(name==="recap") renderRecap();
   if(name==="highscores") renderHighScores();
