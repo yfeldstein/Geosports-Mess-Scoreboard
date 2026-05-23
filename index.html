@@ -243,9 +243,14 @@ scoresRef.on("value", snap => {
 });
 
 function getScores(){ return liveScores || {}; }
-function getDates(s){ return Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).reverse(); }
+function parseKey(d){
+  // d is "m-d-yyyy" e.g. "5-6-2026"
+  const p=d.split("-");
+  return new Date(parseInt(p[2]), parseInt(p[0])-1, parseInt(p[1]));
+}
+function getDates(s){ return Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).reverse(); }
 function allVals(s){ return Object.values(s).flatMap(d=>Object.values(d)).filter(v=>v!=null); }
-function playerScores(s,name){ return Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).map(d=>s[d]?.[name]).filter(v=>v!=null); }
+function playerScores(s,name){ return Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).map(d=>s[d]?.[name]).filter(v=>v!=null); }
 function avg(arr){ return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null; }
 
 function showTab(name){
@@ -344,7 +349,7 @@ function renderRecap(){
   const minLow=Math.min(...PLAYERS.map(n=>{const ps=playerScores(s,n);return ps.length?Math.min(...ps):Infinity;}));
   const stats=PLAYERS.map(name=>{
     const ps=playerScores(s,name);
-    const wins=Object.keys(s).filter(d=>{const day=s[d]||{};let best=-1,w=null;Object.entries(day).forEach(([n,v])=>{if(v>best){best=v;w=n;}});return w===name;}).length;
+    const wins=Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).filter(d=>{const day=s[d]||{};let best=-1,w=null;Object.entries(day).forEach(([n,v])=>{if(v>best){best=v;w=n;}});return w===name;}).length;
     return{name,avg:avg(ps),best:ps.length?Math.max(...ps):null,low:ps.length?Math.min(...ps):null,wins,count:ps.length};
   }).filter(p=>p.avg!=null).sort((a,b)=>b.avg-a.avg);
   const maxWins=Math.max(...stats.map(p=>p.wins));
@@ -384,7 +389,7 @@ function renderHighScores(){
   const all=allVals(s);
   if(!all.length){document.getElementById("view-highscores").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p></div>`;return;}
   const entries=[];
-  Object.keys(s).sort((a,b)=>new Date(a)-new Date(b)).forEach(d=>{
+  Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).forEach(d=>{
     Object.entries(s[d]||{}).forEach(([name,score])=>{
       const p=d.split("-");entries.push({score,name,date:`${p[0]}/${p[1]}`});
     });
@@ -506,7 +511,7 @@ function clearDay(){
 
 function renderDateList(){
   const s=getScores();
-  const dates=Object.keys(s).sort((a,b)=>new Date(b)-new Date(a));
+  const dates=Object.keys(s).sort((a,b)=>parseKey(b)-parseKey(a));
   const el=document.getElementById("date-list");
   if(!el)return;
   if(!dates.length){el.innerHTML=`<p style="color:#aaa;font-size:13px">No dates yet.</p>`;return;}
@@ -558,7 +563,7 @@ function renderCharts(selectedPlayer){
   pillsHtml += `</div>`;
 
   // Get this player's scores in date order
-  const dates = Object.keys(s).sort((a,b)=>new Date(a)-new Date(b));
+  const dates = Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b));
   const playerData = [];
   const labels = [];
   dates.forEach(d=>{
@@ -646,7 +651,7 @@ function renderDailyAvg(sortMode){
   }
 
   // Build daily stats
-  const days = Object.keys(s).map(d=>{
+  const days = Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).map(d=>{
     const scores = Object.values(s[d]||{}).filter(v=>v!=null);
     if(!scores.length) return null;
     const parts = d.split("-");
@@ -665,7 +670,7 @@ function renderDailyAvg(sortMode){
   if(dailyAvgSort === "avg"){
     days.sort((a,b)=>b.sqAvg-a.sqAvg);
   } else {
-    days.sort((a,b)=>new Date(b.key)-new Date(a.key));
+    days.sort((a,b)=>parseKey(b.key)-parseKey(a.key));
   }
 
   const bestAvg = Math.max(...days.map(d=>d.sqAvg));
