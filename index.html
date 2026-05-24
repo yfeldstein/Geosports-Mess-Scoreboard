@@ -654,7 +654,7 @@ function renderCharts(selectedPlayer){
 
 
 // ── DAILY AVERAGES ──
-let dailyAvgSort = "avg"; // "avg" or "date"
+let dailyAvgSort = "avg";
 
 function renderDailyAvg(sortMode){
   if(sortMode) dailyAvgSort = sortMode;
@@ -665,14 +665,12 @@ function renderDailyAvg(sortMode){
     return;
   }
 
-  // Build daily stats
   const days = Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).map(d=>{
     const scores = Object.values(s[d]||{}).filter(v=>v!=null);
     if(!scores.length) return null;
     const parts = d.split("-");
     return {
       key: d,
-      label: `${parts[0]}/${parts[1]}/${parts[2]}`,
       short: `${parts[0]}/${parts[1]}`,
       sqAvg: scores.reduce((a,b)=>a+b,0)/scores.length,
       count: scores.length,
@@ -681,52 +679,47 @@ function renderDailyAvg(sortMode){
     };
   }).filter(Boolean);
 
-  // Sort
-  if(dailyAvgSort === "avg"){
-    days.sort((a,b)=>b.sqAvg-a.sqAvg);
-  } else {
-    days.sort((a,b)=>parseKey(b.key)-parseKey(a.key));
-  }
+  if(dailyAvgSort==="avg") days.sort((a,b)=>b.sqAvg-a.sqAvg);
+  else days.sort((a,b)=>parseKey(b.key)-parseKey(a.key));
 
   const bestAvg = Math.max(...days.map(d=>d.sqAvg));
   const overallAvg = all.reduce((a,b)=>a+b,0)/all.length;
 
-  const btnBase = "padding:7px 16px;border-radius:8px;border:1.5px solid;font-size:13px;font-weight:500;cursor:pointer;";
-  const btnActive = btnBase + "background:#0A1628;color:#fff;border-color:#0A1628;";
-  const btnInactive = btnBase + "background:transparent;color:#666;border-color:#ddd;";
+  const btnBase = "padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid;";
+  const btnOn  = btnBase + "background:#0A1628;color:#fff;border-color:#0A1628;";
+  const btnOff = btnBase + "background:transparent;color:#666;border-color:#ddd;";
 
-  let html = `<div class="card" style="overflow:hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button onclick="renderDailyAvg('avg')" style="${dailyAvgSort==='avg'?btnActive:btnInactive}">BY AVG</button>
-      <button onclick="renderDailyAvg('date')" style="${dailyAvgSort==='date'?btnActive:btnInactive}">BY DATE</button>
-    </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
-      <thead>
-        <tr style="border-bottom:1.5px solid #f0f0f0">
-          <th style="text-align:left;padding:6px 4px;font-weight:600;font-size:11px;color:#aaa;width:18%">Date</th>
-          <th style="text-align:center;padding:6px 4px;font-weight:600;font-size:11px;color:#aaa;width:28%">Full Avg</th>
-          <th style="text-align:center;padding:6px 4px;font-weight:600;font-size:11px;color:#aaa;width:18%">Players</th>
-          <th style="text-align:center;padding:6px 4px;font-weight:600;font-size:11px;color:#aaa;width:18%">High</th>
-          <th style="text-align:center;padding:6px 4px;font-weight:600;font-size:11px;color:#aaa;width:18%">Low</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
+  // Build rows as div-based layout — no table, no overflow issues
+  let rows = "";
   days.forEach(d=>{
     const isBest = d.sqAvg === bestAvg;
-    html += `<tr style="border-bottom:0.5px solid #f5f5f5;background:${isBest?'rgba(255,215,0,0.08)':'transparent'}">
-      <td style="padding:6px 4px;font-weight:500;font-size:13px">${d.short}</td>
-      <td style="text-align:center;padding:6px 4px">
-        <span style="${isBest?'background:#FFD700;color:#000;padding:2px 6px;border-radius:5px;font-weight:700;font-size:13px;':'font-weight:500;font-size:13px;'}">${d.sqAvg.toFixed(2)}</span>
-      </td>
-      <td style="text-align:center;padding:6px 4px;color:#aaa;font-size:13px">${d.count}</td>
-      <td style="text-align:center;padding:6px 4px;color:#aaa;font-size:13px">${d.high}</td>
-      <td style="text-align:center;padding:6px 4px;color:#aaa;font-size:13px">${d.low}</td>
-    </tr>`;
+    const bg = isBest ? "rgba(255,215,0,0.1)" : "transparent";
+    const avgDisplay = isBest
+      ? `<span style="background:#FFD700;color:#000;padding:1px 6px;border-radius:4px;font-weight:700;font-size:12px">${d.sqAvg.toFixed(2)}</span>`
+      : `<span style="font-size:13px;font-weight:500">${d.sqAvg.toFixed(2)}</span>`;
+    rows += `<div style="display:grid;grid-template-columns:14% 28% 16% 21% 21%;align-items:center;padding:7px 0;border-bottom:0.5px solid #f0f0f0;background:${bg}">
+      <div style="font-size:13px;font-weight:500">${d.short}</div>
+      <div style="text-align:center">${avgDisplay}</div>
+      <div style="text-align:center;font-size:13px;color:#aaa">${d.count}</div>
+      <div style="text-align:center;font-size:13px;color:#aaa">${d.high}</div>
+      <div style="text-align:center;font-size:13px;color:#aaa">${d.low}</div>
+    </div>`;
   });
 
-  html += `</tbody></table>
-    <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid #f0f0f0;display:flex;gap:20px;flex-wrap:wrap">
+  const html = `<div class="card">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button onclick="renderDailyAvg('avg')" style="${dailyAvgSort==='avg'?btnOn:btnOff}">BY AVG</button>
+      <button onclick="renderDailyAvg('date')" style="${dailyAvgSort==='date'?btnOn:btnOff}">BY DATE</button>
+    </div>
+    <div style="display:grid;grid-template-columns:14% 28% 16% 21% 21%;padding:0 0 6px;border-bottom:1.5px solid #f0f0f0;margin-bottom:2px">
+      <div style="font-size:11px;font-weight:600;color:#aaa">Date</div>
+      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">Full Avg</div>
+      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">Players</div>
+      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">High</div>
+      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">Low</div>
+    </div>
+    ${rows}
+    <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #f0f0f0;display:flex;gap:16px;flex-wrap:wrap">
       <div style="font-size:12px;color:#aaa">Best day: <strong style="color:#B8860B">${days.find(d=>d.sqAvg===bestAvg)?.short} — ${bestAvg.toFixed(2)}</strong></div>
       <div style="font-size:12px;color:#aaa">Overall avg: <strong style="color:#1a1a1a">${overallAvg.toFixed(2)}</strong></div>
     </div>
@@ -736,140 +729,3 @@ function renderDailyAvg(sortMode){
 }
 
 
-// ── AUTO IMPORT ──
-function parseImport(){
-  const text = document.getElementById("import-text").value;
-  if(!text.trim()){return;}
-
-  // Match lines like: "Name: GeoSports · May 21st ... 942 / 1,000"
-  // or "Name GeoSports · May 21st ... 942 / 1,000"
-  // resultsByDate: { "5-24-2026": { Dave: 905, ... }, ... }
-  const resultsByDate = {};
-  let firstDate = null;
-
-  const MONTH_MAP = {
-    january:1,february:2,march:3,april:4,may:5,june:6,
-    july:7,august:8,september:9,october:10,november:11,december:12
-  };
-  const NAME_MAP = {
-    "you":"Yosef","zachary":"Zach","jason eisenman":"Jason",
-    "dave blum":"Dave","yoni kirschner":"Yoni"
-  };
-
-  const chunks = text.split(/GeoSports/i);
-
-  chunks.forEach((chunk, idx)=>{
-    if(idx === 0) return;
-    const scoreMatch = chunk.match(/(\d{3,4})\s*\/\s*1[,.]?000/);
-    if(!scoreMatch) return;
-    const score = parseInt(scoreMatch[1]);
-
-    const prevChunk = chunks[idx-1];
-    const nameMatch = prevChunk.match(/\]\s*([A-Za-z][A-Za-z\s]*?)\s*:\s*$/) ||
-                      prevChunk.match(/([A-Za-z][A-Za-z\s]*?)\s*:\s*$/);
-    if(!nameMatch) return;
-    const rawName = nameMatch[1].trim();
-    const name = NAME_MAP[rawName.toLowerCase()] || rawName;
-
-    // Get date for THIS specific message
-    const combined = prevChunk + " " + chunk;
-    const dateMatch = combined.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)/i);
-    let dateKey = null;
-    if(dateMatch){
-      const month = MONTH_MAP[dateMatch[1].toLowerCase()];
-      const day = parseInt(dateMatch[2]);
-      if(month){
-        dateKey = `${month}-${day}-2026`;
-        if(!firstDate) firstDate = dateKey;
-      }
-    }
-
-    if(name && score && dateKey){
-      if(!resultsByDate[dateKey]) resultsByDate[dateKey] = {};
-      resultsByDate[dateKey][name] = score;
-    }
-  });
-
-  // For backwards compat with preview/save, flatten if single date
-  const dates = Object.keys(resultsByDate);
-  const results = dates.length === 1 ? resultsByDate[dates[0]] : {};
-  const detectedDate = dates.length === 1 ? dates[0] : null;
-
-  const preview = document.getElementById("import-preview");
-  const totalScores = Object.values(resultsByDate).reduce((a,d)=>a+Object.keys(d).length,0);
-  if(!totalScores){
-    preview.innerHTML = `<p style="color:#c0392b;font-size:13px">No scores detected. Check the format.</p>`;
-    return;
-  }
-
-  let html = '';
-  const dateKeys = Object.keys(resultsByDate).sort();
-
-  dateKeys.forEach(dateKey=>{
-    const dayResults = resultsByDate[dateKey];
-    const parts = dateKey.split('-');
-    const dateDisplay = `${parts[0]}/${parts[1]}/${parts[2]}`;
-    html += `<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px">
-      <div style="background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888;display:flex;justify-content:space-between">
-        <span>Parsed · ${dateDisplay} · ${Object.keys(dayResults).length} scores</span>
-      </div>`;
-
-    Object.entries(dayResults).forEach(([name, score])=>{
-      const c = PC[name] || {fg:"#333", bg:"#eee"};
-      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">
-        <span style="font-weight:500;color:${c.fg}">${name}</span>
-        <span style="font-weight:500">${score}</span>
-      </div>`;
-    });
-
-    html += `<div style="padding:8px 10px">
-      <button class="btn btn-primary" style="width:100%" onclick="saveImport(${JSON.stringify(dayResults)}, '${dateKey}')">Save ${dateDisplay} to Firebase</button>
-    </div></div>`;
-  });
-
-  if(!dateKeys.length){
-    html += `<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden">
-      <div style="padding:8px 10px;border-bottom:0.5px solid #f0f0f0">
-        <label style="font-size:12px;color:#666;margin-right:8px">Date not detected — set manually:</label>
-        <input type="date" id="import-date-override" style="font-size:12px;padding:4px 8px;border:1.5px solid #ddd;border-radius:6px"/>
-      </div>`;
-    Object.entries(results).forEach(([name, score])=>{
-      const c = PC[name] || {fg:"#333"};
-      html += `<div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">
-        <span style="font-weight:500;color:${c.fg}">${name}</span><span>${score}</span></div>`;
-    });
-    html += `<div style="padding:8px 10px">
-      <button class="btn btn-primary" style="width:100%" onclick="saveImport(${JSON.stringify(results)},'')">Save to Firebase</button>
-    </div></div>`;
-  }
-
-  preview.innerHTML = html;
-}
-
-function saveImport(results, autoDate){
-  let dateKey = autoDate;
-  if(!dateKey){
-    const override = document.getElementById("import-date-override");
-    if(override && override.value){
-      const [y,m,d] = override.value.split("-");
-      dateKey = `${parseInt(m)}-${parseInt(d)}-${y}`;
-    }
-  }
-  if(!dateKey){
-    alert("Please set a date first.");
-    return;
-  }
-  scoresRef.child(dateKey).set(results);
-  document.getElementById("import-preview").innerHTML = `<p style="color:#27ae60;font-size:13px;font-weight:500">Saved ${Object.keys(results).length} scores for ${dateKey.replace(/-2026/,'').replace('-','/')}!</p>`;
-  document.getElementById("import-text").value = "";
-  renderDateList();
-}
-
-function checkPw(){
-  const v=document.getElementById("pw").value;
-  if(v===ADMIN_PASS){adminUnlocked=true;document.getElementById("admin-btn").textContent="🔓 Admin";renderAdmin();}
-  else document.getElementById("pw-err").textContent="Incorrect password.";
-}
-</script>
-</body>
-</html>
