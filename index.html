@@ -695,7 +695,7 @@ function renderDailyAvg(sortMode){
   const btnActive = btnBase + "background:#0A1628;color:#fff;border-color:#0A1628;";
   const btnInactive = btnBase + "background:transparent;color:#666;border-color:#ddd;";
 
-  let html = `<div class="card">
+  let html = `<div class="card" style="overflow:visible">
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button onclick="renderDailyAvg('avg')" style="${dailyAvgSort==='avg'?btnActive:btnInactive}">BY AVG</button>
       <button onclick="renderDailyAvg('date')" style="${dailyAvgSort==='date'?btnActive:btnInactive}">BY DATE</button>
@@ -744,8 +744,9 @@ function parseImport(){
 
   // Match lines like: "Name: GeoSports · May 21st ... 942 / 1,000"
   // or "Name GeoSports · May 21st ... 942 / 1,000"
-  const results = {};
-  let detectedDate = null;
+  // resultsByDate: { "5-24-2026": { Dave: 905, ... }, ... }
+  const resultsByDate = {};
+  let firstDate = null;
 
   const MONTH_MAP = {
     january:1,february:2,march:3,april:4,may:5,june:6,
@@ -756,68 +757,92 @@ function parseImport(){
     "dave blum":"Dave","yoni kirschner":"Yoni"
   };
 
-  // Split on GeoSports occurrences — each chunk contains one player's message
   const chunks = text.split(/GeoSports/i);
 
   chunks.forEach((chunk, idx)=>{
-    if(idx === 0) return; // before first GeoSports mention
-    // The score is in this chunk (after GeoSports)
+    if(idx === 0) return;
     const scoreMatch = chunk.match(/(\d{3,4})\s*\/\s*1[,.]?000/);
     if(!scoreMatch) return;
     const score = parseInt(scoreMatch[1]);
 
-    // The name is in the PREVIOUS chunk (before GeoSports)
     const prevChunk = chunks[idx-1];
-    // Name is the last "Word: " or "] Word Word:" before GeoSports
     const nameMatch = prevChunk.match(/\]\s*([A-Za-z][A-Za-z\s]*?)\s*:\s*$/) ||
                       prevChunk.match(/([A-Za-z][A-Za-z\s]*?)\s*:\s*$/);
     if(!nameMatch) return;
     const rawName = nameMatch[1].trim();
     const name = NAME_MAP[rawName.toLowerCase()] || rawName;
 
-    // Date from either chunk
+    // Get date for THIS specific message
     const combined = prevChunk + " " + chunk;
     const dateMatch = combined.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)/i);
-    if(dateMatch && !detectedDate){
+    let dateKey = null;
+    if(dateMatch){
       const month = MONTH_MAP[dateMatch[1].toLowerCase()];
       const day = parseInt(dateMatch[2]);
-      if(month) detectedDate = `${month}-${day}-2026`;
+      if(month){
+        dateKey = `${month}-${day}-2026`;
+        if(!firstDate) firstDate = dateKey;
+      }
     }
 
-    if(name && score) results[name] = score;
+    if(name && score && dateKey){
+      if(!resultsByDate[dateKey]) resultsByDate[dateKey] = {};
+      resultsByDate[dateKey][name] = score;
+    }
   });
 
+  // For backwards compat with preview/save, flatten if single date
+  const dates = Object.keys(resultsByDate);
+  const results = dates.length === 1 ? resultsByDate[dates[0]] : {};
+  const detectedDate = dates.length === 1 ? dates[0] : null;
+
   const preview = document.getElementById("import-preview");
-  if(!Object.keys(results).length){
+  const totalScores = Object.values(resultsByDate).reduce((a,d)=>a+Object.keys(d).length,0);
+  if(!totalScores){
     preview.innerHTML = `<p style="color:#c0392b;font-size:13px">No scores detected. Check the format.</p>`;
     return;
   }
 
-  const dateDisplay = detectedDate ? detectedDate.replace(/-2026/,'').replace('-','/')  : "unknown date";
-  let html = `<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden">
-    <div style="background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888;display:flex;justify-content:space-between">
-      <span>Parsed · ${dateDisplay} · ${Object.keys(results).length} scores</span>
-      ${detectedDate?'':'<span style="color:#c0392b">Date not detected — set manually</span>'}
-    </div>`;
+  let html = '';
+  const dateKeys = Object.keys(resultsByDate).sort();
 
-  if(!detectedDate){
-    html += `<div style="padding:8px 10px;border-bottom:0.5px solid #f0f0f0">
-      <label style="font-size:12px;color:#666;margin-right:8px">Set date:</label>
-      <input type="date" id="import-date-override" style="font-size:12px;padding:4px 8px;border:1.5px solid #ddd;border-radius:6px"/>
-    </div>`;
-  }
+  dateKeys.forEach(dateKey=>{
+    const dayResults = resultsByDate[dateKey];
+    const parts = dateKey.split('-');
+    const dateDisplay = `${parts[0]}/${parts[1]}/${parts[2]}`;
+    html += `<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px">
+      <div style="background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888;display:flex;justify-content:space-between">
+        <span>Parsed · ${dateDisplay} · ${Object.keys(dayResults).length} scores</span>
+      </div>`;
 
-  Object.entries(results).forEach(([name, score])=>{
-    const c = PC[name] || {fg:"#333", bg:"#eee"};
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">
-      <span style="font-weight:500;color:${c.fg}">${name}</span>
-      <span style="font-weight:500">${score}</span>
-    </div>`;
+    Object.entries(dayResults).forEach(([name, score])=>{
+      const c = PC[name] || {fg:"#333", bg:"#eee"};
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">
+        <span style="font-weight:500;color:${c.fg}">${name}</span>
+        <span style="font-weight:500">${score}</span>
+      </div>`;
+    });
+
+    html += `<div style="padding:8px 10px">
+      <button class="btn btn-primary" style="width:100%" onclick="saveImport(${JSON.stringify(dayResults)}, '${dateKey}')">Save ${dateDisplay} to Firebase</button>
+    </div></div>`;
   });
 
-  html += `<div style="padding:8px 10px">
-    <button class="btn btn-primary" style="width:100%" onclick="saveImport(${JSON.stringify(results)}, '${detectedDate||""}')">Save to Firebase</button>
-  </div></div>`;
+  if(!dateKeys.length){
+    html += `<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden">
+      <div style="padding:8px 10px;border-bottom:0.5px solid #f0f0f0">
+        <label style="font-size:12px;color:#666;margin-right:8px">Date not detected — set manually:</label>
+        <input type="date" id="import-date-override" style="font-size:12px;padding:4px 8px;border:1.5px solid #ddd;border-radius:6px"/>
+      </div>`;
+    Object.entries(results).forEach(([name, score])=>{
+      const c = PC[name] || {fg:"#333"};
+      html += `<div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">
+        <span style="font-weight:500;color:${c.fg}">${name}</span><span>${score}</span></div>`;
+    });
+    html += `<div style="padding:8px 10px">
+      <button class="btn btn-primary" style="width:100%" onclick="saveImport(${JSON.stringify(results)},'')">Save to Firebase</button>
+    </div></div>`;
+  }
 
   preview.innerHTML = html;
 }
