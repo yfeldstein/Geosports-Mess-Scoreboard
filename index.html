@@ -744,7 +744,6 @@ function parseImport(){
 
   // Match lines like: "Name: GeoSports · May 21st ... 942 / 1,000"
   // or "Name GeoSports · May 21st ... 942 / 1,000"
-  const lines = text.split("\n");
   const results = {};
   let detectedDate = null;
 
@@ -752,35 +751,40 @@ function parseImport(){
     january:1,february:2,march:3,april:4,may:5,june:6,
     july:7,august:8,september:9,october:10,november:11,december:12
   };
+  const NAME_MAP = {
+    "you":"Yosef","zachary":"Zach","jason eisenman":"Jason",
+    "dave blum":"Dave","yoni kirschner":"Yoni"
+  };
 
-  lines.forEach(line=>{
-    // Extract score: look for pattern like "942 / 1,000" or "942/1000"
-    const scoreMatch = line.match(/(\d{3,4})\s*\/\s*1[,.]?000/);
+  // Split on GeoSports occurrences — each chunk contains one player's message
+  const chunks = text.split(/GeoSports/i);
+
+  chunks.forEach((chunk, idx)=>{
+    if(idx === 0) return; // before first GeoSports mention
+    // The score is in this chunk (after GeoSports)
+    const scoreMatch = chunk.match(/(\d{3,4})\s*\/\s*1[,.]?000/);
     if(!scoreMatch) return;
     const score = parseInt(scoreMatch[1]);
 
-    // Extract name: first word(s) before "GeoSports" or ":"
-    const nameMatch = line.match(/^([A-Za-z]+(?:\s[A-Za-z]+)?)\s*[:·]\s*GeoSports/i) ||
-                      line.match(/^([A-Za-z]+(?:\s[A-Za-z]+)?)\s+GeoSports/i);
+    // The name is in the PREVIOUS chunk (before GeoSports)
+    const prevChunk = chunks[idx-1];
+    // Name is the last "Word: " or "] Word Word:" before GeoSports
+    const nameMatch = prevChunk.match(/\]\s*([A-Za-z][A-Za-z\s]*?)\s*:\s*$/) ||
+                      prevChunk.match(/([A-Za-z][A-Za-z\s]*?)\s*:\s*$/);
     if(!nameMatch) return;
     const rawName = nameMatch[1].trim();
-
-    // Map common name variants to player names
-    const NAME_MAP = {
-      "you": "Yosef", "zachary": "Zach", "jason eisenman": "Jason",
-      "dave blum": "Dave", "yoni kirschner": "Yoni"
-    };
     const name = NAME_MAP[rawName.toLowerCase()] || rawName;
 
-    // Extract date: "May 21st" "May 6th" etc
-    const dateMatch = line.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)/i);
+    // Date from either chunk
+    const combined = prevChunk + " " + chunk;
+    const dateMatch = combined.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)/i);
     if(dateMatch && !detectedDate){
       const month = MONTH_MAP[dateMatch[1].toLowerCase()];
       const day = parseInt(dateMatch[2]);
       if(month) detectedDate = `${month}-${day}-2026`;
     }
 
-    if(name) results[name] = score;
+    if(name && score) results[name] = score;
   });
 
   const preview = document.getElementById("import-preview");
