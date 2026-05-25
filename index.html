@@ -693,8 +693,8 @@ function renderDailyAvg(sortMode){
   // Build using DOM manipulation — no template literals with nested expressions
   let html = '<div class="card">';
   html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
-  html += '<button onclick="renderDailyAvg('avg')" style="' + (dailyAvgSort==='avg'?btnOn:btnOff) + '">BY AVG</button>';
-  html += '<button onclick="renderDailyAvg('date')" style="' + (dailyAvgSort==='date'?btnOn:btnOff) + '">BY DATE</button>';
+  html += '<button onclick="renderDailyAvg(&quot;avg&quot;)" style="' + (dailyAvgSort==='avg'?btnOn:btnOff) + '">BY AVG</button>';
+  html += '<button onclick="renderDailyAvg(&quot;date&quot;)" style="' + (dailyAvgSort==='date'?btnOn:btnOff) + '">BY DATE</button>';
   html += '</div>';
   html += '<div style="display:flex;padding:0 0 6px;border-bottom:1.5px solid #f0f0f0;margin-bottom:2px">';
   html += '<div style="width:22%;font-size:11px;font-weight:600;color:#aaa">Date</div>';
