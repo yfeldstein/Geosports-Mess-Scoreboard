@@ -238,12 +238,24 @@ function toggleDark(){
 }
 applyTheme();
 
+const fbTimeout = setTimeout(()=>{
+  if(liveScores === null){
+    document.getElementById("view-scoreboard").innerHTML = '<div class="card"><p style="color:#c0392b;text-align:center;padding:2rem">Could not connect. Please refresh the page.</p></div>';
+  }
+}, 6000);
+
 scoresRef.on("value", snap => {
+  clearTimeout(fbTimeout);
   liveScores = snap.val() || {};
   if(activeTab==="scoreboard") renderScoreboard();
   if(activeTab==="recap") renderRecap();
   if(activeTab==="highscores") renderHighScores();
+  if(activeTab==="charts") renderCharts();
+  if(activeTab==="dailyavg") renderDailyAvg();
   if(activeTab==="admin" && adminUnlocked) renderDateList();
+}, err=>{
+  clearTimeout(fbTimeout);
+  document.getElementById("view-scoreboard").innerHTML = '<div class="card"><p style="color:#c0392b;text-align:center;padding:2rem">Database error: '+err.message+'</p></div>';
 });
 
 function getScores(){ return liveScores || {}; }
@@ -730,3 +742,113 @@ function renderDailyAvg(sortMode){
 }
 
 
+
+// ── AUTO IMPORT ──
+function parseImport(){
+  const text = document.getElementById("import-text").value;
+  if(!text.trim()){return;}
+
+  const resultsByDate = {};
+  let firstDate = null;
+
+  const MONTH_MAP = {
+    january:1,february:2,march:3,april:4,may:5,june:6,
+    july:7,august:8,september:9,october:10,november:11,december:12
+  };
+  const NAME_MAP = {
+    "you":"Yosef","zachary":"Zach","jason eisenman":"Jason",
+    "dave blum":"Dave","yoni kirschner":"Yoni"
+  };
+
+  const chunks = text.split(/GeoSports/i);
+
+  chunks.forEach(function(chunk, idx){
+    if(idx === 0) return;
+    var scoreMatch = chunk.match(/(\d{3,4})\s*\/\s*1[,.]?000/);
+    if(!scoreMatch) return;
+    var score = parseInt(scoreMatch[1]);
+
+    var prevChunk = chunks[idx-1];
+    var nameMatch = prevChunk.match(/\]\s*([A-Za-z][A-Za-z\s]*?)\s*:\s*$/) ||
+                    prevChunk.match(/([A-Za-z][A-Za-z\s]*?)\s*:\s*$/);
+    if(!nameMatch) return;
+    var rawName = nameMatch[1].trim();
+    var name = NAME_MAP[rawName.toLowerCase()] || rawName;
+
+    var combined = prevChunk + " " + chunk;
+    var dateMatch = combined.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)/i);
+    var dateKey = null;
+    if(dateMatch){
+      var month = MONTH_MAP[dateMatch[1].toLowerCase()];
+      var day = parseInt(dateMatch[2]);
+      if(month){
+        dateKey = month+"-"+day+"-2026";
+        if(!firstDate) firstDate = dateKey;
+      }
+    }
+
+    if(name && score && dateKey){
+      if(!resultsByDate[dateKey]) resultsByDate[dateKey] = {};
+      resultsByDate[dateKey][name] = score;
+    }
+  });
+
+  const preview = document.getElementById("import-preview");
+  const totalScores = Object.values(resultsByDate).reduce(function(a,d){return a+Object.keys(d).length;},0);
+  if(!totalScores){
+    preview.innerHTML = '<p style="color:#c0392b;font-size:13px">No scores detected. Check the format.</p>';
+    return;
+  }
+
+  let html = '';
+  const dateKeys = Object.keys(resultsByDate).sort();
+
+  dateKeys.forEach(function(dateKey){
+    const dayResults = resultsByDate[dateKey];
+    const parts = dateKey.split('-');
+    const dateDisplay = parts[0]+"/"+parts[1]+"/"+parts[2];
+    html += '<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px">';
+    html += '<div style="background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888">Parsed &middot; '+dateDisplay+' &middot; '+Object.keys(dayResults).length+' scores</div>';
+    Object.entries(dayResults).forEach(function(entry){
+      const name = entry[0]; const score = entry[1];
+      const c = PC[name] || {fg:"#333"};
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">';
+      html += '<span style="font-weight:500;color:'+c.fg+'">'+name+'</span>';
+      html += '<span style="font-weight:500">'+score+'</span></div>';
+    });
+    html += '<div style="padding:8px 10px"><button class="btn btn-primary" style="width:100%" onclick="saveImport('+JSON.stringify(dayResults)+",'"+dateKey+"'"+')">Save '+dateDisplay+' to Firebase</button></div></div>';
+  });
+
+  preview.innerHTML = html;
+}
+
+function saveImport(results, dateKey){
+  if(!dateKey){
+    const override = document.getElementById("import-date-override");
+    if(override && override.value){
+      const parts = override.value.split("-");
+      dateKey = parseInt(parts[1])+"-"+parseInt(parts[2])+"-"+parts[0];
+    }
+  }
+  if(!dateKey){ alert("Please set a date first."); return; }
+  scoresRef.child(dateKey).set(results);
+  document.getElementById("import-preview").innerHTML = '<p style="color:#27ae60;font-size:13px;font-weight:500">Saved '+Object.keys(results).length+' scores!</p>';
+  document.getElementById("import-text").value = "";
+  renderDateList();
+}
+
+function showMsg(text,type){
+  const el=document.getElementById("save-msg");
+  if(!el)return;
+  el.textContent=text;el.className="msg "+type;
+  setTimeout(function(){el.textContent="";},3000);
+}
+
+function checkPw(){
+  const v=document.getElementById("pw").value;
+  if(v===ADMIN_PASS){adminUnlocked=true;document.getElementById("admin-btn").textContent="🔓 Admin";renderAdmin();}
+  else document.getElementById("pw-err").textContent="Incorrect password.";
+}
+</script>
+</body>
+</html>
