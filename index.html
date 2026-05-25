@@ -661,7 +661,7 @@ function renderDailyAvg(sortMode){
   const s = getScores();
   const all = allVals(s);
   if(!all.length){
-    document.getElementById("view-dailyavg").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p></div>`;
+    document.getElementById("view-dailyavg").innerHTML='<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No scores yet.</p></div>';
     return;
   }
 
@@ -671,7 +671,7 @@ function renderDailyAvg(sortMode){
     const parts = d.split("-");
     return {
       key: d,
-      short: `${parts[0]}/${parts[1]}`,
+      short: parts[0]+"/"+parts[1],
       sqAvg: scores.reduce((a,b)=>a+b,0)/scores.length,
       count: scores.length,
       high: Math.max(...scores),
@@ -684,45 +684,49 @@ function renderDailyAvg(sortMode){
 
   const bestAvg = Math.max(...days.map(d=>d.sqAvg));
   const overallAvg = all.reduce((a,b)=>a+b,0)/all.length;
-  const btnBase = "padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid;";
-  const btnOn  = btnBase + "background:#0A1628;color:#fff;border-color:#0A1628;";
-  const btnOff = btnBase + "background:transparent;color:#666;border-color:#ddd;";
 
-  let rows = "";
-  days.forEach(d=>{
+  const btnOn  = "padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #0A1628;background:#0A1628;color:#fff;";
+  const btnOff = "padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #ddd;background:transparent;color:#666;";
+
+  const el = document.getElementById("view-dailyavg");
+
+  // Build using DOM manipulation — no template literals with nested expressions
+  let html = '<div class="card">';
+  html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
+  html += '<button onclick="renderDailyAvg('avg')" style="' + (dailyAvgSort==='avg'?btnOn:btnOff) + '">BY AVG</button>';
+  html += '<button onclick="renderDailyAvg('date')" style="' + (dailyAvgSort==='date'?btnOn:btnOff) + '">BY DATE</button>';
+  html += '</div>';
+  html += '<div style="display:flex;padding:0 0 6px;border-bottom:1.5px solid #f0f0f0;margin-bottom:2px">';
+  html += '<div style="width:22%;font-size:11px;font-weight:600;color:#aaa">Date</div>';
+  html += '<div style="width:26%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Full Avg</div>';
+  html += '<div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Plyrs</div>';
+  html += '<div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">High</div>';
+  html += '<div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Low</div>';
+  html += '</div>';
+
+  days.forEach(function(d){
     const isBest = d.sqAvg === bestAvg;
-    const avgDisplay = isBest
-      ? `<span style="background:#FFD700;color:#000;padding:1px 6px;border-radius:4px;font-weight:700;font-size:12px">${d.sqAvg.toFixed(2)}</span>`
-      : `<span style="font-size:13px;font-weight:500">${d.sqAvg.toFixed(2)}</span>`;
-    rows += `<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid #f0f0f0;background:${isBest?'rgba(255,215,0,0.08)':'transparent'}">
-      <div style="width:22%;font-size:13px;font-weight:500">${d.short}</div>
-      <div style="width:26%;text-align:center">${avgDisplay}</div>
-      <div style="width:17%;text-align:center;font-size:13px;color:#aaa">${d.count}</div>
-      <div style="width:17%;text-align:center;font-size:13px;color:#aaa">${d.high}</div>
-      <div style="width:17%;text-align:center;font-size:13px;color:#aaa">${d.low}</div>
-    </div>`;
+    const bg = isBest ? "rgba(255,215,0,0.08)" : "transparent";
+    const avgStr = d.sqAvg.toFixed(2);
+    const avgHtml = isBest
+      ? '<span style="background:#FFD700;color:#000;padding:1px 6px;border-radius:4px;font-weight:700;font-size:12px">'+avgStr+'</span>'
+      : '<span style="font-size:13px;font-weight:500">'+avgStr+'</span>';
+    html += '<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid #f0f0f0;background:'+bg+'">';
+    html += '<div style="width:22%;font-size:13px;font-weight:500">'+d.short+'</div>';
+    html += '<div style="width:26%;text-align:center">'+avgHtml+'</div>';
+    html += '<div style="width:17%;text-align:center;font-size:13px;color:#aaa">'+d.count+'</div>';
+    html += '<div style="width:17%;text-align:center;font-size:13px;color:#aaa">'+d.high+'</div>';
+    html += '<div style="width:17%;text-align:center;font-size:13px;color:#aaa">'+d.low+'</div>';
+    html += '</div>';
   });
 
-  const html = `<div class="card">
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button onclick="renderDailyAvg('avg')" style="${dailyAvgSort==='avg'?btnOn:btnOff}">BY AVG</button>
-      <button onclick="renderDailyAvg('date')" style="${dailyAvgSort==='date'?btnOn:btnOff}">BY DATE</button>
-    </div>
-    <div style="display:flex;padding:0 0 6px;border-bottom:1.5px solid #f0f0f0;margin-bottom:2px">
-      <div style="width:22%;font-size:11px;font-weight:600;color:#aaa">Date</div>
-      <div style="width:26%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Full Avg</div>
-      <div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Plyrs</div>
-      <div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">High</div>
-      <div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Low</div>
-    </div>
-    ${rows}
-    <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #f0f0f0;display:flex;gap:16px;flex-wrap:wrap">
-      <div style="font-size:12px;color:#aaa">Best day: <strong style="color:#B8860B">${days.find(d=>d.sqAvg===bestAvg)?.short} — ${bestAvg.toFixed(2)}</strong></div>
-      <div style="font-size:12px;color:#aaa">Overall avg: <strong style="color:#1a1a1a">${overallAvg.toFixed(2)}</strong></div>
-    </div>
-  </div>`;
+  const bestDay = days.find(function(d){return d.sqAvg===bestAvg;});
+  html += '<div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #f0f0f0;display:flex;gap:16px;flex-wrap:wrap">';
+  html += '<div style="font-size:12px;color:#aaa">Best day: <strong style="color:#B8860B">'+(bestDay?bestDay.short:'')+" — "+bestAvg.toFixed(2)+'</strong></div>';
+  html += '<div style="font-size:12px;color:#aaa">Overall avg: <strong style="color:#1a1a1a">'+overallAvg.toFixed(2)+'</strong></div>';
+  html += '</div></div>';
 
-  document.getElementById("view-dailyavg").innerHTML = html;
+  el.innerHTML = html;
 }
 
 
