@@ -684,25 +684,22 @@ function renderDailyAvg(sortMode){
 
   const bestAvg = Math.max(...days.map(d=>d.sqAvg));
   const overallAvg = all.reduce((a,b)=>a+b,0)/all.length;
-
   const btnBase = "padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid;";
   const btnOn  = btnBase + "background:#0A1628;color:#fff;border-color:#0A1628;";
   const btnOff = btnBase + "background:transparent;color:#666;border-color:#ddd;";
 
-  // Build rows as div-based layout — no table, no overflow issues
   let rows = "";
   days.forEach(d=>{
     const isBest = d.sqAvg === bestAvg;
-    const bg = isBest ? "rgba(255,215,0,0.1)" : "transparent";
     const avgDisplay = isBest
       ? `<span style="background:#FFD700;color:#000;padding:1px 6px;border-radius:4px;font-weight:700;font-size:12px">${d.sqAvg.toFixed(2)}</span>`
       : `<span style="font-size:13px;font-weight:500">${d.sqAvg.toFixed(2)}</span>`;
-    rows += `<div style="display:grid;grid-template-columns:14% 28% 16% 21% 21%;align-items:center;padding:7px 0;border-bottom:0.5px solid #f0f0f0;background:${bg}">
-      <div style="font-size:13px;font-weight:500">${d.short}</div>
-      <div style="text-align:center">${avgDisplay}</div>
-      <div style="text-align:center;font-size:13px;color:#aaa">${d.count}</div>
-      <div style="text-align:center;font-size:13px;color:#aaa">${d.high}</div>
-      <div style="text-align:center;font-size:13px;color:#aaa">${d.low}</div>
+    rows += `<div style="display:flex;align-items:center;padding:7px 0;border-bottom:0.5px solid #f0f0f0;background:${isBest?'rgba(255,215,0,0.08)':'transparent'}">
+      <div style="width:22%;font-size:13px;font-weight:500">${d.short}</div>
+      <div style="width:26%;text-align:center">${avgDisplay}</div>
+      <div style="width:17%;text-align:center;font-size:13px;color:#aaa">${d.count}</div>
+      <div style="width:17%;text-align:center;font-size:13px;color:#aaa">${d.high}</div>
+      <div style="width:17%;text-align:center;font-size:13px;color:#aaa">${d.low}</div>
     </div>`;
   });
 
@@ -711,12 +708,12 @@ function renderDailyAvg(sortMode){
       <button onclick="renderDailyAvg('avg')" style="${dailyAvgSort==='avg'?btnOn:btnOff}">BY AVG</button>
       <button onclick="renderDailyAvg('date')" style="${dailyAvgSort==='date'?btnOn:btnOff}">BY DATE</button>
     </div>
-    <div style="display:grid;grid-template-columns:14% 28% 16% 21% 21%;padding:0 0 6px;border-bottom:1.5px solid #f0f0f0;margin-bottom:2px">
-      <div style="font-size:11px;font-weight:600;color:#aaa">Date</div>
-      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">Full Avg</div>
-      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">Players</div>
-      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">High</div>
-      <div style="font-size:11px;font-weight:600;color:#aaa;text-align:center">Low</div>
+    <div style="display:flex;padding:0 0 6px;border-bottom:1.5px solid #f0f0f0;margin-bottom:2px">
+      <div style="width:22%;font-size:11px;font-weight:600;color:#aaa">Date</div>
+      <div style="width:26%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Full Avg</div>
+      <div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Plyrs</div>
+      <div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">High</div>
+      <div style="width:17%;font-size:11px;font-weight:600;color:#aaa;text-align:center">Low</div>
     </div>
     ${rows}
     <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #f0f0f0;display:flex;gap:16px;flex-wrap:wrap">
