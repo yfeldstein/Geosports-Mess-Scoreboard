@@ -916,9 +916,12 @@ function renderRankings(){
         ctx.save();
         ctx.font = 'bold 9px -apple-system,sans-serif';
         ctx.fillStyle = color;
+        ctx.textBaseline = 'bottom';
+        ctx.textAlign = 'center';
+        // First point: label above the starting dot
+        ctx.fillText(initial, valid[0].x, valid[0].y - 5);
+        // Last point: label to the right outside chart area
         ctx.textBaseline = 'middle';
-        ctx.textAlign = 'right';
-        ctx.fillText(initial, ca.left - 4, valid[0].y);
         ctx.textAlign = 'left';
         ctx.fillText(initial, ca.right + 4, valid[valid.length-1].y);
         ctx.restore();
