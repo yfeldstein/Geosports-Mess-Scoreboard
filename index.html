@@ -1022,7 +1022,7 @@ function renderRankings(){
         x:{ticks:{font:{size:10},maxRotation:45,autoSkip:false},grid:{color:'rgba(128,128,128,0.06)'}},
         y:{
           reverse:true,min:0.5,max:8.5,
-          ticks:{stepSize:1,font:{size:10},callback:function(v){return Number.isInteger(v)?'#'+v:'';},count:10},
+          ticks:{font:{size:10},callback:function(v){return Number.isInteger(v)?'#'+v:null;},includeBounds:false},
           grid:{color:'rgba(128,128,128,0.1)'},
           title:{display:true,text:'Rank',font:{size:11},color:'#aaa'}
         }
