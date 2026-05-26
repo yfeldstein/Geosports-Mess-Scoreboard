@@ -176,10 +176,10 @@ td.name-col{text-align:left;font-weight:600;position:sticky;left:0;z-index:2}
       <button class="tab" onclick="showTab('recap')">Recap</button>
       <button class="tab" onclick="showTab('highscores')">High Scores</button>
       <button class="tab" onclick="showTab('charts')">Charts</button>
-      <button class="tab" onclick="showTab('rankings')">Rankings</button>
     </div>
     <div style="display:flex;gap:0">
       <button class="tab" onclick="showTab('dailyavg')">Daily Averages</button>
+      <button class="tab" onclick="showTab('rankings')">Rankings</button>
       <div id="admin-tab-wrap" style="display:none;flex:1">
         <button class="tab" style="width:100%" onclick="showTab('admin')">Admin</button>
       </div>
@@ -866,61 +866,52 @@ function renderRankings(){
 
   const dates = Object.keys(s).sort(function(a,b){return parseKey(a)-parseKey(b);});
 
-  // For each date, compute cumulative running avg for each player up to that date
-  // Then rank players by their running avg
-  const playerRunningAvg = {};
-  PLAYERS.forEach(function(name){ playerRunningAvg[name] = []; });
+  // Build cumulative scores for each player
+  const cumScores = {};
+  PLAYERS.forEach(function(n){ cumScores[n] = []; });
 
-  // Build cumulative scores up to each date
-  const ranksByDate = dates.map(function(d){
-    // Update running totals
-    PLAYERS.forEach(function(name){
-      const score = s[d] && s[d][name] != null ? s[d][name] : null;
-      const prev = playerRunningAvg[name];
-      if(score != null){
-        const prevScores = prev.length > 0 ? prev[prev.length-1].scores : [];
-        playerRunningAvg[name].push({ scores: prevScores.concat([score]) });
-      } else {
-        playerRunningAvg[name].push(prev.length > 0 ? prev[prev.length-1] : null);
-      }
+  // For each date compute running avg rank
+  const labels = [];
+  const rankData = {};
+  PLAYERS.forEach(function(n){ rankData[n] = []; });
+
+  dates.forEach(function(d){
+    const parts = d.split('-');
+    labels.push(parts[0]+'/'+parts[1]);
+
+    // Update cumulative scores
+    PLAYERS.forEach(function(n){
+      const v = s[d] && s[d][n] != null ? s[d][n] : null;
+      if(v != null) cumScores[n].push(v);
     });
 
-    // Compute avg for each player at this date
+    // Compute current running avg for each player with data
     const avgs = {};
-    PLAYERS.forEach(function(name){
-      const entry = playerRunningAvg[name][playerRunningAvg[name].length-1];
-      if(entry && entry.scores.length > 0){
-        avgs[name] = entry.scores.reduce(function(a,b){return a+b;},0)/entry.scores.length;
+    PLAYERS.forEach(function(n){
+      if(cumScores[n].length > 0){
+        avgs[n] = cumScores[n].reduce(function(a,b){return a+b;},0)/cumScores[n].length;
       }
     });
 
-    // Rank players with data
-    const ranked = Object.keys(avgs).sort(function(a,b){return avgs[b]-avgs[a];});
-    const ranks = {};
-    ranked.forEach(function(name,i){ ranks[name] = i+1; });
-    return ranks;
+    // Rank players who have data
+    const withData = Object.keys(avgs).sort(function(a,b){return avgs[b]-avgs[a];});
+    PLAYERS.forEach(function(n){
+      rankData[n].push(avgs[n] != null ? withData.indexOf(n)+1 : null);
+    });
   });
 
-  const DASH_STYLES = {
-    Adam:   [6,2,2,2],
-    Dave:   [8,3],
-    Donny:  [],
-    Jason:  [4,2],
-    Ronnie: [1,3],
-    Yoni:   [2,3],
-    Yosef:  [6,3],
-    Zach:   [8,2,2,2],
+  const DASH = {
+    Adam:[6,2,2,2], Dave:[8,3], Donny:[], Jason:[4,2],
+    Ronnie:[1,3], Yoni:[2,3], Yosef:[6,3], Zach:[8,2,2,2]
   };
 
-  // Build chart datasets
   const datasets = PLAYERS.map(function(name){
     const c = PC[name];
-    const data = ranksByDate.map(function(ranks){ return ranks[name] || null; });
     return {
       label: name,
-      data: data,
+      data: rankData[name],
       borderColor: c.fg,
-      borderDash: DASH_STYLES[name] || [],
+      borderDash: DASH[name]||[],
       backgroundColor: 'transparent',
       borderWidth: 2.5,
       pointRadius: 4,
@@ -932,64 +923,51 @@ function renderRankings(){
     };
   });
 
-  const labels = dates.map(function(d){
-    const p = d.split('-'); return p[0]+'/'+p[1];
-  });
-
-  // Build legend HTML
   let legendHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:10px;border-top:0.5px solid #f0f0f0">';
   PLAYERS.forEach(function(name){
     const c = PC[name];
-    const dash = DASH_STYLES[name] || [];
+    const dash = DASH[name]||[];
     const dashAttr = dash.length ? 'stroke-dasharray="'+dash.join(',')+'"' : '';
-    legendHtml += '<div style="display:flex;align-items:center;gap:6px;font-size:12px">';
-    legendHtml += '<svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="'+c.fg+'" stroke-width="2.5" '+dashAttr+'/></svg>';
-    legendHtml += '<span style="color:'+c.fg+';font-weight:500">'+name+'</span></div>';
+    legendHtml += '<div style="display:flex;align-items:center;gap:6px;font-size:12px">'
+      +'<svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="'+c.fg+'" stroke-width="2.5" '+dashAttr+'/></svg>'
+      +'<span style="color:'+c.fg+';font-weight:500">'+name+'</span></div>';
   });
   legendHtml += '</div>';
 
-  const el = document.getElementById("view-rankings");
-  el.innerHTML = '<div class="card">'
+  document.getElementById("view-rankings").innerHTML =
+    '<div class="card">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
     +'<span style="font-size:13px;font-weight:600">Rankings Over Time</span>'
     +'<span style="font-size:11px;color:#aaa">#1 = top</span></div>'
-    +'<p style="font-size:11px;color:#aaa;margin-bottom:10px">Cumulative avg rank after each day</p>'
+    +'<p style="font-size:11px;color:#aaa;margin-bottom:10px">Cumulative avg rank after each day played</p>'
     +'<div style="position:relative;height:260px"><canvas id="rankingsChart"></canvas></div>'
     +legendHtml
     +'</div>';
 
   if(window._rankingsChart) window._rankingsChart.destroy();
-  window._rankingsChart = new Chart(document.getElementById('rankingsChart'), {
-    type: 'line',
-    data: { labels: labels, datasets: datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(ctx){ return ' '+ctx.dataset.label+': #'+ctx.parsed.y; }
-          }
-        }
+  window._rankingsChart = new Chart(document.getElementById('rankingsChart'),{
+    type:'line',
+    data:{labels:labels,datasets:datasets},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': #'+ctx.parsed.y;}}}
       },
-      scales: {
-        x: {
-          ticks: { font:{ size:10 }, maxRotation:45, autoSkip:true },
-          grid: { display:false }
-        },
-        y: {
-          reverse: true,
-          min: 1,
-          max: 8,
-          ticks: { stepSize:1, font:{ size:10 }, callback: function(v){ return '#'+v; } },
-          grid: { color:'rgba(128,128,128,0.1)' },
-          title: { display:true, text:'Rank', font:{ size:11 }, color:'#aaa' }
+      scales:{
+        x:{ticks:{font:{size:10},maxRotation:45,autoSkip:true},grid:{display:false}},
+        y:{
+          reverse:true,min:1,max:8,
+          ticks:{stepSize:1,font:{size:10},callback:function(v){return '#'+v;}},
+          grid:{color:'rgba(128,128,128,0.1)'},
+          title:{display:true,text:'Rank',font:{size:11},color:'#aaa'}
         }
       }
     }
   });
 }
+
 
 function checkPw(){
   const v=document.getElementById("pw").value;
