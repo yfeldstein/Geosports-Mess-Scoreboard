@@ -863,16 +863,17 @@ function parseImport(){
 }
 
 function saveFromStore(idx){
-  alert("saveFromStore called: idx="+idx+", entry="+(importStore[idx]?"found":"MISSING"));
   const entry = importStore[idx];
   if(!entry){ alert("Data not found. Please parse again."); return; }
-  scoresRef.child(entry.dateKey).set(entry.results).then(function(){
-    const parts = entry.dateKey.split('-');
-    const btn = document.querySelectorAll('#import-preview .btn-primary')[idx];
-    if(btn){ btn.textContent = "Saved!"; btn.disabled = true; }
-    console.log("Saved OK:", entry.dateKey, entry.results);
-  }).catch(function(err){
-    alert("Firebase error: "+err.message);
+  const ref = scoresRef.child(entry.dateKey);
+  ref.set(entry.results, function(err){
+    if(err){
+      alert("Save failed: "+err.message);
+    } else {
+      const btns = document.querySelectorAll('#import-preview button');
+      if(btns[idx]){ btns[idx].textContent = "✅ Saved!"; btns[idx].disabled = true; }
+      renderDateList();
+    }
   });
 }
 
