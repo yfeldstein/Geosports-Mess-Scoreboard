@@ -224,6 +224,7 @@ const PC = {
 };
 const ADMIN_PASS = "geosports2026";
 let adminUnlocked = false;
+const importStore = {};
 let activeTab = "scoreboard";
 let liveScores = null;
 
@@ -810,50 +811,77 @@ function parseImport(){
     return;
   }
 
-  let html = '';
   const dateKeys = Object.keys(resultsByDate).sort();
+  const previewEl = document.getElementById("import-preview");
+  previewEl.innerHTML = '';
 
-  dateKeys.forEach(function(dateKey){
+  dateKeys.forEach(function(dateKey, idx){
     const dayResults = resultsByDate[dateKey];
     const parts = dateKey.split('-');
     const dateDisplay = parts[0]+"/"+parts[1]+"/"+parts[2];
-    html += '<div style="border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px">';
-    html += '<div style="background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888">Parsed &middot; '+dateDisplay+' &middot; '+Object.keys(dayResults).length+' scores</div>';
+    importStore[idx] = {results: dayResults, dateKey: dateKey};
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px';
+
+    const header = document.createElement('div');
+    header.style.cssText = 'background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888';
+    header.textContent = 'Parsed · '+dateDisplay+' · '+Object.keys(dayResults).length+' scores';
+    wrapper.appendChild(header);
+
     Object.entries(dayResults).forEach(function(entry){
       const name = entry[0]; const score = entry[1];
       const c = PC[name] || {fg:"#333"};
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5">';
-      html += '<span style="font-weight:500;color:'+c.fg+'">'+name+'</span>';
-      html += '<span style="font-weight:500">'+score+'</span></div>';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5';
+      const nameEl = document.createElement('span');
+      nameEl.style.cssText = 'font-weight:500;color:'+c.fg;
+      nameEl.textContent = name;
+      const scoreEl = document.createElement('span');
+      scoreEl.style.fontWeight = '500';
+      scoreEl.textContent = score;
+      row.appendChild(nameEl);
+      row.appendChild(scoreEl);
+      wrapper.appendChild(row);
     });
-    const safeKey = 'imp_'+dateKey.replace(/-/g,'_');
-    window[safeKey] = dayResults;
-    window[safeKey+'_date'] = dateKey;
-    html += '<div style="padding:8px 10px"><button class="btn btn-primary" style="width:100%" onclick="saveImportKeyed(&quot;'+safeKey+'&quot;)">Save '+dateDisplay+' to Firebase</button></div></div>';
-  });
 
-  preview.innerHTML = html;
+    const btnWrap = document.createElement('div');
+    btnWrap.style.padding = '8px 10px';
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary';
+    btn.style.width = '100%';
+    btn.textContent = 'Save '+dateDisplay+' to Firebase';
+    btn.setAttribute('data-idx', idx);
+    btn.addEventListener('click', function(){
+      const i = parseInt(this.getAttribute('data-idx'));
+      saveFromStore(i);
+    });
+    btnWrap.appendChild(btn);
+    wrapper.appendChild(btnWrap);
+    previewEl.appendChild(wrapper);
+  });
 }
 
-function saveImportKeyed(key){
-  saveImport(window[key], window[key+'_date']);
+function saveFromStore(idx){
+  const entry = importStore[idx];
+  if(!entry){ alert("Data not found. Please parse again."); return; }
+  scoresRef.child(entry.dateKey).set(entry.results).then(function(){
+    const parts = entry.dateKey.split('-');
+    const btn = document.querySelectorAll('#import-preview .btn-primary')[idx];
+    if(btn){ btn.textContent = "Saved!"; btn.disabled = true; }
+    console.log("Saved OK:", entry.dateKey, entry.results);
+  }).catch(function(err){
+    alert("Firebase error: "+err.message);
+  });
 }
 
 function saveImport(results, dateKey){
   if(!results || !Object.keys(results).length){ alert("No data to save."); return; }
-  if(!dateKey){
-    const override = document.getElementById("import-date-override");
-    if(override && override.value){
-      const parts = override.value.split("-");
-      dateKey = parseInt(parts[1])+"-"+parseInt(parts[2])+"-"+parts[0];
-    }
-  }
   if(!dateKey){ alert("Please set a date first."); return; }
   scoresRef.child(dateKey).set(results).then(function(){
-    console.log("Saved OK:", dateKey, results);
+    console.log("Saved OK:", dateKey);
   }).catch(function(err){
     alert("Firebase error: "+err.message);
-    console.error("Save failed:", err);
   });
   document.getElementById("import-preview").innerHTML = '<p style="color:#27ae60;font-size:13px;font-weight:500">Saved '+Object.keys(results).length+' scores!</p>';
   document.getElementById("import-text").value = "";
