@@ -863,6 +863,7 @@ function parseImport(){
 }
 
 function saveFromStore(idx){
+  alert("saveFromStore called: idx="+idx+", entry="+(importStore[idx]?"found":"MISSING"));
   const entry = importStore[idx];
   if(!entry){ alert("Data not found. Please parse again."); return; }
   scoresRef.child(entry.dateKey).set(entry.results).then(function(){
