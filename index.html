@@ -865,44 +865,65 @@ function renderRankings(){
   }
 
   const dates = Object.keys(s).sort(function(a,b){return parseKey(a)-parseKey(b);});
-
-  // Build cumulative scores for each player
   const cumScores = {};
   PLAYERS.forEach(function(n){ cumScores[n] = []; });
 
-  // For each date compute running avg rank
   const labels = [];
   const rankData = {};
   PLAYERS.forEach(function(n){ rankData[n] = []; });
 
   dates.forEach(function(d){
-    const parts = d.split('-');
-    labels.push(parts[0]+'/'+parts[1]);
-
-    // Update cumulative scores
+    const p = d.split('-');
+    labels.push(p[0]+'/'+p[1]);
     PLAYERS.forEach(function(n){
       const v = s[d] && s[d][n] != null ? s[d][n] : null;
       if(v != null) cumScores[n].push(v);
     });
-
-    // Compute current running avg for each player with data
     const avgs = {};
     PLAYERS.forEach(function(n){
       if(cumScores[n].length > 0){
         avgs[n] = cumScores[n].reduce(function(a,b){return a+b;},0)/cumScores[n].length;
       }
     });
-
-    // Rank players who have data
     const withData = Object.keys(avgs).sort(function(a,b){return avgs[b]-avgs[a];});
     PLAYERS.forEach(function(n){
       rankData[n].push(avgs[n] != null ? withData.indexOf(n)+1 : null);
     });
   });
 
+  const INITIALS = {
+    Adam:'A', Dave:'Da', Donny:'Do', Jason:'J',
+    Ronnie:'R', Yoni:'Yi', Yosef:'Yf', Zach:'Z'
+  };
+
   const DASH = {
     Adam:[6,2,2,2], Dave:[8,3], Donny:[], Jason:[4,2],
     Ronnie:[1,3], Yoni:[2,3], Yosef:[6,3], Zach:[8,2,2,2]
+  };
+
+  const initialsPlugin = {
+    id:'initials',
+    afterDatasetsDraw:function(chart){
+      const ctx = chart.ctx;
+      const ca = chart.chartArea;
+      chart.data.datasets.forEach(function(ds,i){
+        const meta = chart.getDatasetMeta(i);
+        const name = ds.label;
+        const initial = INITIALS[name];
+        const color = PC[name].fg;
+        const valid = meta.data.filter(function(p){ return p && !isNaN(p.y) && p.y > 0; });
+        if(!valid.length) return;
+        ctx.save();
+        ctx.font = 'bold 9px -apple-system,sans-serif';
+        ctx.fillStyle = color;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'right';
+        ctx.fillText(initial, ca.left - 4, valid[0].y);
+        ctx.textAlign = 'left';
+        ctx.fillText(initial, ca.right + 4, valid[valid.length-1].y);
+        ctx.restore();
+      });
+    }
   };
 
   const datasets = PLAYERS.map(function(name){
@@ -914,7 +935,7 @@ function renderRankings(){
       borderDash: DASH[name]||[],
       backgroundColor: 'transparent',
       borderWidth: 2.5,
-      pointRadius: 4,
+      pointRadius: 3,
       pointBackgroundColor: c.fg,
       pointBorderColor: '#fff',
       pointBorderWidth: 1.5,
@@ -923,14 +944,14 @@ function renderRankings(){
     };
   });
 
-  let legendHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:10px;border-top:0.5px solid #f0f0f0">';
+  let legendHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:10px;border-top:0.5px solid #f0f0f0;margin-top:10px">';
   PLAYERS.forEach(function(name){
     const c = PC[name];
     const dash = DASH[name]||[];
     const dashAttr = dash.length ? 'stroke-dasharray="'+dash.join(',')+'"' : '';
     legendHtml += '<div style="display:flex;align-items:center;gap:6px;font-size:12px">'
       +'<svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="'+c.fg+'" stroke-width="2.5" '+dashAttr+'/></svg>'
-      +'<span style="color:'+c.fg+';font-weight:500">'+name+'</span></div>';
+      +'<span style="color:'+c.fg+';font-weight:500">'+INITIALS[name]+' — '+name+'</span></div>';
   });
   legendHtml += '</div>';
 
@@ -939,8 +960,10 @@ function renderRankings(){
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
     +'<span style="font-size:13px;font-weight:600">Rankings Over Time</span>'
     +'<span style="font-size:11px;color:#aaa">#1 = top</span></div>'
-    +'<p style="font-size:11px;color:#aaa;margin-bottom:10px">Cumulative avg rank after each day played</p>'
-    +'<div style="position:relative;height:260px"><canvas id="rankingsChart"></canvas></div>'
+    +'<p style="font-size:11px;color:#aaa;margin-bottom:10px">Cumulative avg rank after each day played · scroll →</p>'
+    +'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
+    +'<div style="position:relative;height:300px;min-width:'+Math.max(600,labels.length*38)+'px">'
+    +'<canvas id="rankingsChart"></canvas></div></div>'
     +legendHtml
     +'</div>';
 
@@ -948,15 +971,17 @@ function renderRankings(){
   window._rankingsChart = new Chart(document.getElementById('rankingsChart'),{
     type:'line',
     data:{labels:labels,datasets:datasets},
+    plugins:[initialsPlugin],
     options:{
       responsive:true,
       maintainAspectRatio:false,
+      layout:{padding:{left:24,right:24}},
       plugins:{
         legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': #'+ctx.parsed.y;}}}
       },
       scales:{
-        x:{ticks:{font:{size:10},maxRotation:45,autoSkip:true},grid:{display:false}},
+        x:{ticks:{font:{size:10},maxRotation:45,autoSkip:false},grid:{color:'rgba(128,128,128,0.06)'}},
         y:{
           reverse:true,min:1,max:8,
           ticks:{stepSize:1,font:{size:10},callback:function(v){return '#'+v;}},
