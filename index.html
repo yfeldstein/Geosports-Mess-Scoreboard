@@ -826,10 +826,17 @@ function parseImport(){
       html += '<span style="font-weight:500;color:'+c.fg+'">'+name+'</span>';
       html += '<span style="font-weight:500">'+score+'</span></div>';
     });
-    html += '<div style="padding:8px 10px"><button class="btn btn-primary" style="width:100%" onclick="saveImport('+JSON.stringify(dayResults)+",'"+dateKey+"'"+')">Save '+dateDisplay+' to Firebase</button></div></div>';
+    const safeKey = 'imp_'+dateKey.replace(/-/g,'_');
+    window[safeKey] = dayResults;
+    window[safeKey+'_date'] = dateKey;
+    html += '<div style="padding:8px 10px"><button class="btn btn-primary" style="width:100%" onclick="saveImportKeyed(&quot;'+safeKey+'&quot;)">Save '+dateDisplay+' to Firebase</button></div></div>';
   });
 
   preview.innerHTML = html;
+}
+
+function saveImportKeyed(key){
+  saveImport(window[key], window[key+'_date']);
 }
 
 function saveImport(results, dateKey){
