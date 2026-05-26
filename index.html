@@ -840,6 +840,7 @@ function saveImportKeyed(key){
 }
 
 function saveImport(results, dateKey){
+  if(!results || !Object.keys(results).length){ alert("No data to save."); return; }
   if(!dateKey){
     const override = document.getElementById("import-date-override");
     if(override && override.value){
@@ -848,7 +849,12 @@ function saveImport(results, dateKey){
     }
   }
   if(!dateKey){ alert("Please set a date first."); return; }
-  scoresRef.child(dateKey).set(results);
+  scoresRef.child(dateKey).set(results).then(function(){
+    console.log("Saved OK:", dateKey, results);
+  }).catch(function(err){
+    alert("Firebase error: "+err.message);
+    console.error("Save failed:", err);
+  });
   document.getElementById("import-preview").innerHTML = '<p style="color:#27ae60;font-size:13px;font-weight:500">Saved '+Object.keys(results).length+' scores!</p>';
   document.getElementById("import-text").value = "";
   renderDateList();
