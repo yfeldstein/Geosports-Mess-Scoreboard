@@ -906,44 +906,60 @@ function renderRankings(){
     afterDatasetsDraw:function(chart){
       const ctx = chart.ctx;
       const ca = chart.chartArea;
+
+      function drawBadge(x, y, text, color, align){
+        ctx.save();
+        ctx.font = 'bold 9px -apple-system,sans-serif';
+        const tw = ctx.measureText(text).width;
+        const pad = 3;
+        const bw = tw + pad*2;
+        const bh = 13;
+        let bx = align==='center' ? x - bw/2 : x;
+        // Always draw below if near top edge, above otherwise
+        const by = y - bh - 6 < ca.top ? y + 6 : y - bh - 6;
+        // Background rect (no roundRect for compat)
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.fillRect(bx, by, bw, bh);
+        // Border
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(bx, by, bw, bh);
+        // Text
+        ctx.fillStyle = color;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = align==='center' ? 'center' : 'left';
+        ctx.fillText(text, align==='center' ? x : bx+pad, by + bh/2);
+        ctx.restore();
+      }
+
       chart.data.datasets.forEach(function(ds,i){
         const meta = chart.getDatasetMeta(i);
         const name = ds.label;
         const initial = INITIALS[name];
         const color = PC[name].fg;
-        // Get all valid points (non-null, within chart area)
-        const valid = meta.data.filter(function(p){
-          return p && !isNaN(p.x) && !isNaN(p.y) && p.y > 0 && p.x >= ca.left;
-        });
-        if(!valid.length) return;
 
-        ctx.save();
-        ctx.font = 'bold 9px -apple-system,sans-serif';
-
-        function drawLabel(x, y, align, baseline){
-          const tw = ctx.measureText(initial).width;
-          const pad = 2;
-          let bx = align==='center' ? x - tw/2 - pad : align==='left' ? x - pad : x - tw - pad;
-          let by = baseline==='bottom' ? y - 14 - pad : y - 6;
-          // White background pill
-          ctx.fillStyle = 'rgba(255,255,255,0.85)';
-          ctx.beginPath();
-          ctx.roundRect(bx, by, tw + pad*2, 13, 3);
-          ctx.fill();
-          // Text
-          ctx.fillStyle = color;
-          ctx.textBaseline = baseline;
-          ctx.textAlign = align;
-          ctx.fillText(initial, x, baseline==='bottom' ? y - 5 : y);
+        // Find first valid point — search ALL meta.data including nulls
+        let firstValid = null;
+        for(var j=0; j<meta.data.length; j++){
+          const p = meta.data[j];
+          const dval = ds.data[j];
+          if(dval != null && p && !isNaN(p.x) && !isNaN(p.y)){
+            firstValid = p; break;
+          }
         }
 
-        // First dot: initial above the dot
-        drawLabel(valid[0].x, valid[0].y, 'center', 'bottom');
+        // Find last valid point
+        let lastValid = null;
+        for(var j=meta.data.length-1; j>=0; j--){
+          const p = meta.data[j];
+          const dval = ds.data[j];
+          if(dval != null && p && !isNaN(p.x) && !isNaN(p.y)){
+            lastValid = p; break;
+          }
+        }
 
-        // Last dot: initial to the right outside chart
-        drawLabel(ca.right + 4, valid[valid.length-1].y, 'left', 'middle');
-
-        ctx.restore();
+        if(firstValid) drawBadge(firstValid.x, firstValid.y, initial, color, 'center');
+        if(lastValid)  drawBadge(ca.right + 4, lastValid.y, initial, color, 'left');
       });
     }
   };
