@@ -911,19 +911,38 @@ function renderRankings(){
         const name = ds.label;
         const initial = INITIALS[name];
         const color = PC[name].fg;
-        const valid = meta.data.filter(function(p){ return p && !isNaN(p.y) && p.y > 0; });
+        // Get all valid points (non-null, within chart area)
+        const valid = meta.data.filter(function(p){
+          return p && !isNaN(p.x) && !isNaN(p.y) && p.y > 0 && p.x >= ca.left;
+        });
         if(!valid.length) return;
+
         ctx.save();
         ctx.font = 'bold 9px -apple-system,sans-serif';
-        ctx.fillStyle = color;
-        ctx.textBaseline = 'bottom';
-        ctx.textAlign = 'center';
-        // First point: label above the starting dot
-        ctx.fillText(initial, valid[0].x, valid[0].y - 5);
-        // Last point: label to the right outside chart area
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
-        ctx.fillText(initial, ca.right + 4, valid[valid.length-1].y);
+
+        function drawLabel(x, y, align, baseline){
+          const tw = ctx.measureText(initial).width;
+          const pad = 2;
+          let bx = align==='center' ? x - tw/2 - pad : align==='left' ? x - pad : x - tw - pad;
+          let by = baseline==='bottom' ? y - 14 - pad : y - 6;
+          // White background pill
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.beginPath();
+          ctx.roundRect(bx, by, tw + pad*2, 13, 3);
+          ctx.fill();
+          // Text
+          ctx.fillStyle = color;
+          ctx.textBaseline = baseline;
+          ctx.textAlign = align;
+          ctx.fillText(initial, x, baseline==='bottom' ? y - 5 : y);
+        }
+
+        // First dot: initial above the dot
+        drawLabel(valid[0].x, valid[0].y, 'center', 'bottom');
+
+        // Last dot: initial to the right outside chart
+        drawLabel(ca.right + 4, valid[valid.length-1].y, 'left', 'middle');
+
         ctx.restore();
       });
     }
