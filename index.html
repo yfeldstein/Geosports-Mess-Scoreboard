@@ -1000,7 +1000,7 @@ function renderRankings(){
     +'<span style="font-size:11px;color:#aaa">#1 = top</span></div>'
     +'<p style="font-size:11px;color:#aaa;margin-bottom:10px">Cumulative avg rank after each day played · scroll →</p>'
     +'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
-    +'<div style="position:relative;height:300px;min-width:'+Math.max(600,labels.length*38)+'px">'
+    +'<div style="position:relative;height:340px;min-width:'+Math.max(600,labels.length*38)+'px">'
     +'<canvas id="rankingsChart"></canvas></div></div>'
     +legendHtml
     +'</div>';
@@ -1013,7 +1013,7 @@ function renderRankings(){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      layout:{padding:{left:24,right:24}},
+      layout:{padding:{left:24,right:24,top:28,bottom:16}},
       plugins:{
         legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': #'+ctx.parsed.y;}}}
@@ -1021,7 +1021,7 @@ function renderRankings(){
       scales:{
         x:{ticks:{font:{size:10},maxRotation:45,autoSkip:false},grid:{color:'rgba(128,128,128,0.06)'}},
         y:{
-          reverse:true,min:1,max:8,
+          reverse:true,min:0.5,max:8.5,
           ticks:{stepSize:1,font:{size:10},callback:function(v){return '#'+v;}},
           grid:{color:'rgba(128,128,128,0.1)'},
           title:{display:true,text:'Rank',font:{size:11},color:'#aaa'}
