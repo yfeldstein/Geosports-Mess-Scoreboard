@@ -363,46 +363,88 @@ function renderScoreboard(){
 
 // ── RECAP ──
 function renderRecap(){
-  const s=getScores();
-  const all=allVals(s);
-  if(!all.length){document.getElementById("view-recap").innerHTML=`<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No data yet.</p></div>`;return;}
-  const maxBest=Math.max(...PLAYERS.map(n=>{const ps=playerScores(s,n);return ps.length?Math.max(...ps):-Infinity;}));
-  const minLow=Math.min(...PLAYERS.map(n=>{const ps=playerScores(s,n);return ps.length?Math.min(...ps):Infinity;}));
-  const stats=PLAYERS.map(name=>{
-    const ps=playerScores(s,name);
-    const wins=Object.keys(s).sort((a,b)=>parseKey(a)-parseKey(b)).filter(d=>{const day=s[d]||{};let best=-1,w=null;Object.entries(day).forEach(([n,v])=>{if(v>best){best=v;w=n;}});return w===name;}).length;
-    return{name,avg:avg(ps),best:ps.length?Math.max(...ps):null,low:ps.length?Math.min(...ps):null,wins,count:ps.length};
-  }).filter(p=>p.avg!=null).sort((a,b)=>b.avg-a.avg);
-  const maxWins=Math.max(...stats.map(p=>p.wins));
-  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">`;
-  stats.forEach((p,i)=>{
-    const c=PC[p.name];
-    const bestCls=p.best===maxBest?"chip-gold":"";
-    const lowCls=p.low===minLow?"chip-brown":"";
-    const winColor=p.wins===maxWins&&p.wins>0?"#B8860B":"#aaa";
-    const winWeight=p.wins===maxWins&&p.wins>0?"700":"400";
-    const rankBg=i===0?"#FFD700":i===1?"#C0C0C0":i===2?"#CD7F32":"#333";
-    const rankFg=i<3?"#000":"#aaa";
-    html+=`<div class="recap-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-weight:700;font-size:15px;color:${c.fg}">${p.name}</span>
-        <span style="background:${rankBg};color:${rankFg};padding:2px 8px;border-radius:6px;font-weight:700;font-size:12px">#${i+1}</span>
-      </div>
-      <div style="background:${c.bg};border-radius:8px;padding:6px 10px;text-align:center;margin-bottom:8px">
-        <div style="font-size:11px;color:${c.fg};opacity:0.7;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Avg Score</div>
-        <div style="font-size:20px;font-weight:700;color:${c.fg}">${p.avg.toFixed(2)}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center">
-        <div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Best</div><span class="score-chip ${bestCls}" style="font-size:12px;min-width:auto">${p.best??'—'}</span></div>
-        <div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Low</div><span class="score-chip ${lowCls}" style="font-size:12px;min-width:auto">${p.low??'—'}</span></div>
-        <div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Wins</div><div style="font-size:14px;font-weight:${winWeight};color:${winColor}">${p.wins}</div></div>
-        <div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Games</div><div style="font-size:14px;font-weight:400;color:#aaa">${p.count}</div></div>
-      </div>
-    </div>`;
+  const s = getScores();
+  const all = allVals(s);
+  if(!all.length){
+    document.getElementById("view-recap").innerHTML='<div class="card"><p style="color:#aaa;text-align:center;padding:2rem">No data yet.</p></div>';
+    return;
+  }
+
+  const maxBest = Math.max(...PLAYERS.map(function(n){const ps=playerScores(s,n);return ps.length?Math.max(...ps):-Infinity;}));
+  const minLow  = Math.min(...PLAYERS.map(function(n){const ps=playerScores(s,n);return ps.length?Math.min(...ps):Infinity;}));
+  const maxWins = Math.max(...PLAYERS.map(function(n){
+    return Object.keys(s).filter(function(d){
+      const day=s[d]||{};let best=-1,w=null;
+      Object.entries(day).forEach(function(e){if(e[1]>best){best=e[1];w=e[0];}});
+      return w===n;
+    }).length;
+  }));
+
+  const stats = PLAYERS.map(function(name){
+    const ps = playerScores(s,name);
+    const wins = Object.keys(s).filter(function(d){
+      const day=s[d]||{};let best=-1,w=null;
+      Object.entries(day).forEach(function(e){if(e[1]>best){best=e[1];w=e[0];}});
+      return w===name;
+    }).length;
+    const total = ps.reduce(function(a,b){return a+b;},0);
+    return {
+      name, 
+      avg: ps.length ? total/ps.length : null,
+      best: ps.length ? Math.max(...ps) : null,
+      low:  ps.length ? Math.min(...ps) : null,
+      wins, 
+      count: ps.length,
+      total
+    };
+  }).filter(function(p){return p.avg!=null;}).sort(function(a,b){return b.avg-a.avg;});
+
+  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+
+  stats.forEach(function(p, i){
+    const c = PC[p.name];
+    const rankBg  = i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'#e0e0e0';
+    const rankFg  = i<3?'#000':'#666';
+    const winColor = p.wins===maxWins&&p.wins>0?'#B8860B':'#aaa';
+    const bestCls  = p.best===maxBest?'background:#FFD700;color:#7a6000;':'background:#f0f0f0;color:#333;';
+    const lowCls   = p.low===minLow?'background:#FF6600;color:#fff;':'background:#f0f0f0;color:#333;';
+
+    html += '<div style="background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:12px">';
+
+    // Row 1: name + rank
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">';
+    html += '<span style="font-weight:600;font-size:15px;color:'+c.fg+'">'+p.name+'</span>';
+    html += '<span style="background:'+rankBg+';color:'+rankFg+';padding:2px 8px;border-radius:6px;font-weight:700;font-size:12px">#'+(i+1)+'</span>';
+    html += '</div>';
+
+    // Row 2: avg left, best/worst right
+    html += '<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px">';
+    html += '<div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Avg</div>';
+    html += '<div style="font-size:20px;font-weight:700;color:'+c.fg+'">'+p.avg.toFixed(2)+'</div></div>';
+    html += '<div style="display:flex;gap:8px;align-items:flex-end">';
+    html += '<div style="text-align:center"><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Best</div>';
+    html += '<span style="'+bestCls+'padding:1px 6px;border-radius:4px;font-size:13px;font-weight:700">'+(p.best??'—')+'</span></div>';
+    html += '<div style="text-align:center"><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Worst</div>';
+    html += '<span style="'+lowCls+'padding:1px 6px;border-radius:4px;font-size:13px;font-weight:700">'+(p.low??'—')+'</span></div>';
+    html += '</div></div>';
+
+    // Row 3: total pts, wins, games
+    html += '<div style="border-top:0.5px solid #f0f0f0;padding-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center">';
+    html += '<div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Total pts</div>';
+    html += '<div style="font-size:13px;font-weight:600;color:'+c.fg+'">'+p.total.toLocaleString()+'</div></div>';
+    html += '<div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Wins</div>';
+    html += '<div style="font-size:13px;font-weight:600;color:'+winColor+'">'+p.wins+'</div></div>';
+    html += '<div><div style="font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase">Games</div>';
+    html += '<div style="font-size:13px;font-weight:600;color:#aaa">'+p.count+'</div></div>';
+    html += '</div>';
+
+    html += '</div>';
   });
-  html+=`</div>`;
-  document.getElementById("view-recap").innerHTML=html;
+
+  html += '</div>';
+  document.getElementById("view-recap").innerHTML = html;
 }
+
 
 // ── HIGH SCORES ──
 function renderHighScores(){
