@@ -487,12 +487,35 @@ function renderAdmin(){
 
   <div class="card">
     <div class="card-title">Auto-import from chat</div>
-    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Paste group chat messages. Detects names, dates and scores automatically.</p>
-    <textarea id="import-text" style="width:100%;height:110px;border-radius:8px;border:1.5px solid #ddd;font-size:12px;padding:8px;resize:none;font-family:sans-serif;background:#f9f9f9;color:#333" placeholder="e.g. Adam: GeoSports · May 21st 🟢🟢🟡 942 / 1,000&#10;Donny: GeoSports · May 21st 🟢🟢🟢 887 / 1,000&#10;Yosef: GeoSports · May 21st 🟢🟡🟢 896 / 1,000"></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-primary" onclick="parseImport()">Parse & Preview</button>
-      <button class="btn" onclick="document.getElementById('import-text').value='';document.getElementById('import-preview').innerHTML=''">Clear</button>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn ${importMode==='text'?'btn-primary':''}" onclick="setImportMode('text')" id="mode-text-btn">📋 Paste text</button>
+      <button class="btn ${importMode==='image'?'btn-primary':''}" onclick="setImportMode('image')" id="mode-image-btn">📷 Screenshot</button>
     </div>
+
+    <div id="import-text-section">
+      <p style="font-size:13px;color:#aaa;margin-bottom:10px">Paste group chat messages. Detects names, dates and scores automatically.</p>
+      <textarea id="import-text" style="width:100%;height:110px;border-radius:8px;border:1.5px solid #ddd;font-size:12px;padding:8px;resize:none;font-family:sans-serif;background:#f9f9f9;color:#333" placeholder="e.g. [6/12, 6:49 AM] Yosef Feldstein: GeoSports · June 12th&#10;794 / 1,000"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary" onclick="parseImport()">Parse & Preview</button>
+        <button class="btn" onclick="document.getElementById('import-text').value='';document.getElementById('import-preview').innerHTML=''">Clear</button>
+      </div>
+    </div>
+
+    <div id="import-image-section" style="display:none">
+      <p style="font-size:13px;color:#aaa;margin-bottom:10px">Upload a screenshot of your group chat. Claude will extract all scores automatically.</p>
+      <input type="file" id="import-image-file" accept="image/*" style="display:none" onchange="handleImageUpload(event)"/>
+      <div id="import-image-preview-wrap" style="margin-bottom:10px;display:none">
+        <img id="import-image-preview" style="max-width:100%;border-radius:8px;border:1.5px solid #ddd"/>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="document.getElementById('import-image-file').click()">Choose screenshot</button>
+        <button class="btn" id="parse-image-btn" style="display:none" onclick="parseImageImport()">Parse & Preview</button>
+        <button class="btn" onclick="clearImageImport()">Clear</button>
+      </div>
+      <div id="import-image-status" style="font-size:13px;color:#aaa;margin-top:8px"></div>
+    </div>
+
     <div id="import-preview" style="margin-top:12px"></div>
   </div>`;
   document.getElementById("view-admin").innerHTML=html;
@@ -1074,6 +1097,170 @@ function renderRankings(){
   });
 }
 
+
+
+// ── IMAGE IMPORT ──
+let importMode = 'text';
+let importImageBase64 = null;
+
+function setImportMode(mode){
+  importMode = mode;
+  document.getElementById('import-text-section').style.display = mode==='text'?'block':'none';
+  document.getElementById('import-image-section').style.display = mode==='image'?'block':'none';
+  document.getElementById('mode-text-btn').className = 'btn'+(mode==='text'?' btn-primary':'');
+  document.getElementById('mode-image-btn').className = 'btn'+(mode==='image'?' btn-primary':'');
+  document.getElementById('import-preview').innerHTML = '';
+}
+
+function handleImageUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const dataUrl = e.target.result;
+    importImageBase64 = dataUrl.split(',')[1];
+    const preview = document.getElementById('import-image-preview');
+    preview.src = dataUrl;
+    document.getElementById('import-image-preview-wrap').style.display = 'block';
+    document.getElementById('parse-image-btn').style.display = 'inline-block';
+    document.getElementById('import-image-status').textContent = 'Image ready — click Parse & Preview';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImageImport(){
+  importImageBase64 = null;
+  document.getElementById('import-image-preview-wrap').style.display = 'none';
+  document.getElementById('parse-image-btn').style.display = 'none';
+  document.getElementById('import-image-status').textContent = '';
+  document.getElementById('import-preview').innerHTML = '';
+  document.getElementById('import-image-file').value = '';
+}
+
+async function parseImageImport(){
+  if(!importImageBase64){ alert('Please choose a screenshot first.'); return; }
+  const statusEl = document.getElementById('import-image-status');
+  statusEl.textContent = '🔍 Analyzing screenshot...';
+
+  const prompt = `You are parsing a group chat screenshot from a GeoSports score sharing group.
+
+Extract all GeoSports scores visible in the image. For each score entry find:
+1. The player name (first name only, or full name - use first name)
+2. The date (e.g. "June 12th" → month and day)
+3. The score (3 or 4 digit number before "/ 1,000" or "/ 1,0...")
+
+Name mappings to apply:
+- "You" or "Yosef Feldstein" → Yosef
+- "Adam Karhu" or "Adam" → Adam
+- "Donny Knoll" or "Donny" → Donny
+- "Dave Blum" or "Dave" → Dave
+- "Jason Eisenman" or "Jason" → Jason
+- "Ronnie Riven" or "Ronnie" → Ronnie
+- "Yoni Kirschner" or "Yoni" → Yoni
+- "Zachary Helprin" or "Zachary" or "Zach" → Zach
+
+Return ONLY a JSON array, no explanation, no markdown, like this:
+[{"name":"Yosef","score":794,"month":6,"day":12},{"name":"Adam","score":856,"month":6,"day":12}]
+
+If you cannot find any scores return an empty array: []`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: "image/jpeg", data: importImageBase64 }},
+            { type: "text", text: prompt }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    if(!response.ok){ statusEl.textContent = "API error: "+(data.error?.message||'Unknown error'); return; }
+
+    const text = data.content[0].text.trim();
+    let entries;
+    try {
+      const clean = text.replace(/```json|```/g,'').trim();
+      entries = JSON.parse(clean);
+    } catch(e) {
+      statusEl.textContent = "Could not parse response. Try again.";
+      console.error("Parse error:", text);
+      return;
+    }
+
+    if(!entries.length){ statusEl.textContent = "No scores found in image. Try a clearer screenshot."; return; }
+
+    // Group by date
+    const resultsByDate = {};
+    entries.forEach(function(e){
+      const dateKey = e.month+"-"+e.day+"-2026";
+      if(!resultsByDate[dateKey]) resultsByDate[dateKey] = {};
+      resultsByDate[dateKey][e.name] = e.score;
+    });
+
+    statusEl.textContent = "Found "+entries.length+" score"+(entries.length!==1?"s":"")+" — review below";
+
+    // Reuse the same preview rendering
+    const previewEl = document.getElementById("import-preview");
+    previewEl.innerHTML = "";
+    const dateKeys = Object.keys(resultsByDate).sort();
+    dateKeys.forEach(function(dateKey, idx){
+      const dayResults = resultsByDate[dateKey];
+      const parts = dateKey.split("-");
+      const dateDisplay = parts[0]+"/"+parts[1]+"/"+parts[2];
+      importStore[idx] = {results: dayResults, dateKey: dateKey};
+
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "border:0.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px";
+
+      const header = document.createElement("div");
+      header.style.cssText = "background:#f5f5f5;padding:6px 10px;font-size:11px;font-weight:600;color:#888";
+      header.textContent = "Parsed from screenshot · "+dateDisplay+" · "+Object.keys(dayResults).length+" scores";
+      wrapper.appendChild(header);
+
+      Object.entries(dayResults).forEach(function(entry){
+        const name = entry[0]; const score = entry[1];
+        const c = PC[name]||{fg:"#333"};
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:0.5px solid #f5f5f5";
+        const nameEl = document.createElement("span");
+        nameEl.style.cssText = "font-weight:500;color:"+c.fg;
+        nameEl.textContent = name;
+        const scoreEl = document.createElement("span");
+        scoreEl.style.fontWeight = "500";
+        scoreEl.textContent = score;
+        row.appendChild(nameEl);
+        row.appendChild(scoreEl);
+        wrapper.appendChild(row);
+      });
+
+      const btnWrap = document.createElement("div");
+      btnWrap.style.padding = "8px 10px";
+      const btn = document.createElement("button");
+      btn.className = "btn btn-primary";
+      btn.style.width = "100%";
+      btn.textContent = "Save "+dateDisplay+" to Firebase";
+      btn.setAttribute("data-idx", idx);
+      btn.addEventListener("click", function(){
+        saveFromStore(parseInt(this.getAttribute("data-idx")));
+      });
+      btnWrap.appendChild(btn);
+      wrapper.appendChild(btnWrap);
+      previewEl.appendChild(wrapper);
+    });
+
+  } catch(err) {
+    statusEl.textContent = "Error: "+err.message;
+    console.error(err);
+  }
+}
 
 function checkPw(){
   const v=document.getElementById("pw").value;
